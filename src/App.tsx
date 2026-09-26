@@ -1,121 +1,182 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useRef, useState } from 'react'
+import Spinner from './components/Spinner'
+import { questions } from './data/questions'
+import {
+  createQuestionPicker,
+  type Question,
+  type QuestionFilter,
+} from './lib/questionPicker'
 import './App.css'
 
+const spinDurationMs = 1800
+
+const filterOptions: readonly { value: QuestionFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'technical', label: 'Technical' },
+  { value: 'behavioral', label: 'Behavioral' },
+]
+
+function categoryLabel(category: Question['category']) {
+  return category === 'technical' ? 'Technical' : 'Behavioral'
+}
+
+function reducedMotionIsPreferred() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const pickerRef = useRef(createQuestionPicker(questions))
+  const spinTimeoutRef = useRef<number | null>(null)
+  const spinningRef = useRef(false)
+  const [activeFilter, setActiveFilter] = useState<QuestionFilter>('all')
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
+  const [isSpinning, setIsSpinning] = useState(false)
+  const [announcement, setAnnouncement] = useState(
+    'Choose a category, then spin for an interview question.',
+  )
+
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current !== null) {
+        window.clearTimeout(spinTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  function handleFilterChange(filter: QuestionFilter) {
+    if (filter === activeFilter || spinningRef.current) {
+      return
+    }
+
+    pickerRef.current.setFilter(filter)
+    setActiveFilter(filter)
+    setSelectedQuestion(null)
+    setAnnouncement(`${filter === 'all' ? 'All' : categoryLabel(filter)} questions ready.`)
+  }
+
+  function handleSpin() {
+    if (spinningRef.current) {
+      return
+    }
+
+    const nextQuestion = pickerRef.current.draw()
+    const duration = reducedMotionIsPreferred() ? 120 : spinDurationMs
+
+    spinningRef.current = true
+    setIsSpinning(true)
+    setAnnouncement('Selecting a question.')
+
+    spinTimeoutRef.current = window.setTimeout(() => {
+      spinningRef.current = false
+      spinTimeoutRef.current = null
+      setSelectedQuestion(nextQuestion)
+      setIsSpinning(false)
+      setAnnouncement(
+        `${categoryLabel(nextQuestion.category)} question selected: ${nextQuestion.prompt}`,
+      )
+    }, duration)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app-shell">
+      <header className="site-header">
+        <div className="brand-lockup">
+          <span className="brand-mark" aria-hidden="true">
+            IS
+          </span>
+          <div>
+            <p className="eyebrow">Interview practice, one prompt at a time</p>
+            <h1>Interview Spin</h1>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+        <p className="header-note">{questions.length} carefully chosen prompts for software engineers.</p>
+      </header>
+
+      <main>
+        <section className="practice-section" aria-labelledby="practice-heading">
+          <div className="section-intro">
+            <div>
+              <p className="eyebrow">Practice round</p>
+              <h2 id="practice-heading">Practice one software engineering question at a time.</h2>
+            </div>
+            <p className="section-description">
+              Pick a lane or keep it open. Your next question is decided before the wheel starts moving.
+            </p>
+          </div>
+
+          <div className="practice-layout">
+            <div className="spinner-panel">
+              <div className="filter-block">
+                <span className="control-label" id="category-label">
+                  Question category
+                </span>
+                <div className="filter-list" role="group" aria-labelledby="category-label">
+                  {filterOptions.map((option) => (
+                    <button
+                      className="filter-button"
+                      key={option.value}
+                      type="button"
+                      aria-pressed={activeFilter === option.value}
+                      disabled={isSpinning}
+                      onClick={() => handleFilterChange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Spinner
+                isSpinning={isSpinning}
+                onSpin={handleSpin}
+                animationDurationMs={spinDurationMs}
+              />
+              <p className="spinner-caption" aria-live="polite">
+                {isSpinning
+                  ? 'Finding a prompt in your selected category…'
+                  : 'The wheel will settle on one prompt.'}
+              </p>
+            </div>
+
+            <article className="question-card">
+              <div className="question-card-header">
+                <span className="eyebrow">Selected question</span>
+                {selectedQuestion ? <span className="question-index">Ready to answer</span> : null}
+              </div>
+
+              {selectedQuestion ? (
+                <div className="question-content">
+                  <div className="question-meta">
+                    <span className="category-pill">{categoryLabel(selectedQuestion.category)}</span>
+                    <span className="topic-label">{selectedQuestion.topic}</span>
+                  </div>
+                  <p className="question-prompt">{selectedQuestion.prompt}</p>
+                  <p className="question-footer">Take a moment to outline your answer before you speak.</p>
+                </div>
+              ) : (
+                <div className="question-placeholder">
+                  <span className="placeholder-dot" aria-hidden="true">
+                    ?
+                  </span>
+                  <p>Your selected prompt will land here.</p>
+                  <span>Use the category filter to shape the next spin.</span>
+                </div>
+              )}
+            </article>
+          </div>
+
+          <p className="sr-only" aria-live="polite">
+            {announcement}
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        </section>
+      </main>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <footer className="site-footer">
+        <span>Built for focused practice.</span>
+        <span aria-hidden="true">·</span>
+        <span>Keyboard ready</span>
+      </footer>
+    </div>
   )
 }
 
