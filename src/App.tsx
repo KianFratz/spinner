@@ -1,6 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Spinner from './components/Spinner'
 import { questions } from './data/questions'
+import {
+  DEFAULT_DURATION_SECONDS,
+  MAX_DURATION_SECONDS,
+  MIN_DURATION_SECONDS,
+  canAbandonRound,
+  formatRemainingTime,
+  isDurationLocked,
+  requiresAbandonmentConfirmation,
+  type AnswerTimerPhase,
+} from './lib/answerTimer'
+import { useAnswerTimer } from './hooks/useAnswerTimer'
 import {
   createQuestionPicker,
   type Question,
@@ -20,6 +31,44 @@ function categoryLabel(category: Question['category']) {
   return category === 'technical' ? 'Technical' : 'Behavioral'
 }
 
+function durationDescription(durationSeconds: number) {
+  const minutes = Math.floor(durationSeconds / 60)
+  const seconds = durationSeconds % 60
+  const minutePart = minutes === 0 ? '' : minutes === 1 ? '1 minute' : `${minutes} minutes`
+  const secondPart = seconds === 0 ? '' : `${seconds} seconds`
+
+  return [minutePart, secondPart].filter(Boolean).join(' ')
+}
+
+function questionStatusLabel(phase: AnswerTimerPhase) {
+  switch (phase) {
+    case 'running':
+      return 'Answering now'
+    case 'paused':
+      return 'Paused'
+    case 'expired':
+      return 'Time’s up'
+    case 'selected':
+    case 'idle':
+      return 'Ready to answer'
+  }
+}
+
+function timerStatusMessage(phase: AnswerTimerPhase) {
+  switch (phase) {
+    case 'running':
+      return 'Answer out loud and keep going.'
+    case 'paused':
+      return 'The timer is paused.'
+    case 'expired':
+      return 'Time’s up. Reset to try this question again.'
+    case 'selected':
+      return 'Start when you are ready to answer.'
+    case 'idle':
+      return ''
+  }
+}
+
 function reducedMotionIsPreferred() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
@@ -31,9 +80,22 @@ function App() {
   const [activeFilter, setActiveFilter] = useState<QuestionFilter>('all')
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
+  const [durationInput, setDurationInput] = useState(String(DEFAULT_DURATION_SECONDS))
   const [announcement, setAnnouncement] = useState(
     'Choose a category, then spin for an interview question.',
   )
+  const answerTimer = useAnswerTimer()
+  const previousTimerPhaseRef = useRef(answerTimer.timer.phase)
+
+  const durationLocked = isDurationLocked(answerTimer.timer.phase)
+
+  useEffect(() => {
+    if (answerTimer.timer.phase === 'expired' && previousTimerPhaseRef.current !== 'expired') {
+      setAnnouncement('Time’s up.')
+    }
+
+    previousTimerPhaseRef.current = answerTimer.timer.phase
+  }, [answerTimer.timer.phase])
 
   useEffect(() => {
     return () => {
@@ -44,13 +106,14 @@ function App() {
   }, [])
 
   function handleFilterChange(filter: QuestionFilter) {
-    if (filter === activeFilter || spinningRef.current) {
+    if (filter === activeFilter || spinningRef.current || durationLocked) {
       return
     }
 
     pickerRef.current.setFilter(filter)
     setActiveFilter(filter)
     setSelectedQuestion(null)
+    answerTimer.abandon()
     setAnnouncement(`${filter === 'all' ? 'All' : categoryLabel(filter)} questions ready.`)
   }
 
@@ -59,10 +122,24 @@ function App() {
       return
     }
 
+    let confirmed = true
+
+    if (requiresAbandonmentConfirmation(answerTimer.timer.phase)) {
+      confirmed = window.confirm(
+        'Abandon this practice round and spin for a new question?',
+      )
+    }
+
+    if (!canAbandonRound(answerTimer.timer.phase, confirmed)) {
+      return
+    }
+
     const nextQuestion = pickerRef.current.draw()
     const duration = reducedMotionIsPreferred() ? 120 : spinDurationMs
 
+    answerTimer.abandon()
     spinningRef.current = true
+    setSelectedQuestion(null)
     setIsSpinning(true)
     setAnnouncement('Selecting a question.')
 
@@ -70,11 +147,61 @@ function App() {
       spinningRef.current = false
       spinTimeoutRef.current = null
       setSelectedQuestion(nextQuestion)
+      answerTimer.select()
       setIsSpinning(false)
       setAnnouncement(
         `${categoryLabel(nextQuestion.category)} question selected: ${nextQuestion.prompt}`,
       )
     }, duration)
+  }
+
+  function handleDurationChange(event: ChangeEvent<HTMLInputElement>) {
+    const rawDuration = event.target.value
+    const nextDuration = Number(rawDuration)
+
+    setDurationInput(rawDuration)
+
+    if (
+      Number.isInteger(nextDuration) &&
+      nextDuration >= MIN_DURATION_SECONDS &&
+      nextDuration <= MAX_DURATION_SECONDS
+    ) {
+      answerTimer.setDuration(nextDuration)
+    }
+  }
+
+  function handleDurationBlur() {
+    setDurationInput(String(answerTimer.timer.durationSeconds))
+  }
+
+  function handleStartTimer() {
+    if (answerTimer.timer.phase !== 'selected') {
+      return
+    }
+
+    answerTimer.start()
+    setAnnouncement(
+      `Answer timer started for ${durationDescription(answerTimer.timer.durationSeconds)}.`,
+    )
+  }
+
+  function handlePauseResume() {
+    if (answerTimer.timer.phase === 'running') {
+      answerTimer.pause()
+      setAnnouncement('Answer timer paused.')
+    } else if (answerTimer.timer.phase === 'paused') {
+      answerTimer.resume()
+      setAnnouncement('Answer timer resumed.')
+    }
+  }
+
+  function handleResetTimer() {
+    if (!durationLocked) {
+      return
+    }
+
+    answerTimer.reset()
+    setAnnouncement('Timer reset. The full answer time is ready.')
   }
 
   return (
@@ -117,13 +244,37 @@ function App() {
                       key={option.value}
                       type="button"
                       aria-pressed={activeFilter === option.value}
-                      disabled={isSpinning}
+                      disabled={isSpinning || durationLocked}
                       onClick={() => handleFilterChange(option.value)}
                     >
                       {option.label}
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="timer-setting">
+                <label className="control-label" htmlFor="answer-duration">
+                  Answer time
+                </label>
+                <div className="duration-input">
+                  <input
+                    id="answer-duration"
+                    type="number"
+                    min={MIN_DURATION_SECONDS}
+                    max={MAX_DURATION_SECONDS}
+                    step="1"
+                    value={durationInput}
+                    disabled={durationLocked}
+                    onChange={handleDurationChange}
+                    onBlur={handleDurationBlur}
+                    aria-describedby="answer-duration-help"
+                  />
+                  <span>seconds</span>
+                </div>
+                <p className="timer-setting-help" id="answer-duration-help">
+                  Choose 30–600 seconds before you start.
+                </p>
               </div>
 
               <Spinner
@@ -141,7 +292,9 @@ function App() {
             <article className="question-card">
               <div className="question-card-header">
                 <span className="eyebrow">Selected question</span>
-                {selectedQuestion ? <span className="question-index">Ready to answer</span> : null}
+                {selectedQuestion ? (
+                  <span className="question-index">{questionStatusLabel(answerTimer.timer.phase)}</span>
+                ) : null}
               </div>
 
               {selectedQuestion ? (
@@ -152,6 +305,47 @@ function App() {
                   </div>
                   <p className="question-prompt">{selectedQuestion.prompt}</p>
                   <p className="question-footer">Take a moment to outline your answer before you speak.</p>
+                  <div className="answer-timer-card" aria-labelledby="answer-timer-heading">
+                    <div className="answer-timer-card__header">
+                      <span className="eyebrow" id="answer-timer-heading">
+                        Answer timer
+                      </span>
+                      <span className="answer-timer-card__duration">
+                        {durationDescription(answerTimer.timer.durationSeconds)}
+                      </span>
+                    </div>
+                    <div className="answer-timer-card__body">
+                      <div
+                        className="timer-display"
+                        role="timer"
+                        aria-label={
+                          answerTimer.timer.phase === 'expired'
+                            ? 'Time’s up'
+                            : `${formatRemainingTime(answerTimer.timer.remainingMs)} remaining`
+                        }
+                      >
+                        {formatRemainingTime(answerTimer.timer.remainingMs)}
+                      </div>
+                      <p className="timer-status">{timerStatusMessage(answerTimer.timer.phase)}</p>
+                    </div>
+                    <div className="timer-actions">
+                      {answerTimer.timer.phase === 'selected' ? (
+                        <button className="timer-primary-button" type="button" onClick={handleStartTimer}>
+                          Start answer timer
+                        </button>
+                      ) : null}
+                      {answerTimer.timer.phase === 'running' || answerTimer.timer.phase === 'paused' ? (
+                        <button className="timer-secondary-button" type="button" onClick={handlePauseResume}>
+                          {answerTimer.timer.phase === 'running' ? 'Pause' : 'Resume'}
+                        </button>
+                      ) : null}
+                      {durationLocked ? (
+                        <button className="timer-reset-button" type="button" onClick={handleResetTimer}>
+                          Reset
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="question-placeholder">
