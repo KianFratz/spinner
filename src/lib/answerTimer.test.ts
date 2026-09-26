@@ -18,11 +18,12 @@ describe('answer timer setup', () => {
 
     expect(timer).toMatchObject({
       phase: 'selected',
+      hasStarted: false,
       durationSeconds: DEFAULT_DURATION_SECONDS,
       remainingMs: DEFAULT_DURATION_SECONDS * 1000,
       deadlineMs: null,
     })
-    expect(isDurationLocked(timer.phase)).toBe(false)
+    expect(isDurationLocked(timer)).toBe(false)
   })
 
   it('normalizes durations to whole seconds within the supported range', () => {
@@ -53,6 +54,7 @@ describe('answer timer transitions', () => {
     const running = transitionAnswerTimer(selected, { type: 'start', now: 1_000 })
 
     expect(running).toMatchObject({ phase: 'running', deadlineMs: 61_000 })
+    expect(running.hasStarted).toBe(true)
 
     const delayedTick = transitionAnswerTimer(running, { type: 'tick', now: 12_500 })
     expect(delayedTick).toMatchObject({ phase: 'running', remainingMs: 48_500 })
@@ -80,6 +82,7 @@ describe('answer timer transitions', () => {
 
     expect(transitionAnswerTimer(running, { type: 'reset' })).toMatchObject({
       phase: 'selected',
+      hasStarted: true,
       durationSeconds: 90,
       remainingMs: 90_000,
       deadlineMs: null,
@@ -125,10 +128,20 @@ describe('answer timer transitions', () => {
 
 describe('answer timer interaction rules', () => {
   it('locks duration after a round starts and asks before abandoning active rounds', () => {
-    expect(isDurationLocked('selected')).toBe(false)
-    expect(isDurationLocked('running')).toBe(true)
-    expect(isDurationLocked('paused')).toBe(true)
-    expect(isDurationLocked('expired')).toBe(true)
+    const selected = transitionAnswerTimer(createAnswerTimer(), { type: 'select' })
+    const running = transitionAnswerTimer(selected, { type: 'start', now: 1_000 })
+    const paused = transitionAnswerTimer(running, { type: 'pause', now: 2_000 })
+    const expired = transitionAnswerTimer(running, { type: 'tick', now: 100_000 })
+    const reset = transitionAnswerTimer(running, { type: 'reset' })
+
+    expect(isDurationLocked(selected)).toBe(false)
+    expect(isDurationLocked(running)).toBe(true)
+    expect(isDurationLocked(paused)).toBe(true)
+    expect(isDurationLocked(expired)).toBe(true)
+    expect(isDurationLocked(reset)).toBe(true)
+    expect(
+      transitionAnswerTimer(reset, { type: 'set-duration', durationSeconds: 120 }),
+    ).toBe(reset)
 
     expect(requiresAbandonmentConfirmation('selected')).toBe(false)
     expect(requiresAbandonmentConfirmation('running')).toBe(true)

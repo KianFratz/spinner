@@ -27,6 +27,32 @@ const filterOptions: readonly { value: QuestionFilter; label: string }[] = [
   { value: 'behavioral', label: 'Behavioral' },
 ]
 
+const timerPresentation: Record<
+  AnswerTimerPhase,
+  { questionStatus: string; statusMessage: string }
+> = {
+  idle: {
+    questionStatus: 'Ready to answer',
+    statusMessage: '',
+  },
+  selected: {
+    questionStatus: 'Ready to answer',
+    statusMessage: 'Start when you are ready to answer.',
+  },
+  running: {
+    questionStatus: 'Answering now',
+    statusMessage: 'Answer out loud and keep going.',
+  },
+  paused: {
+    questionStatus: 'Paused',
+    statusMessage: 'The timer is paused.',
+  },
+  expired: {
+    questionStatus: 'Time’s up',
+    statusMessage: 'Time’s up. Reset to try this question again.',
+  },
+}
+
 function categoryLabel(category: Question['category']) {
   return category === 'technical' ? 'Technical' : 'Behavioral'
 }
@@ -38,35 +64,6 @@ function durationDescription(durationSeconds: number) {
   const secondPart = seconds === 0 ? '' : `${seconds} seconds`
 
   return [minutePart, secondPart].filter(Boolean).join(' ')
-}
-
-function questionStatusLabel(phase: AnswerTimerPhase) {
-  switch (phase) {
-    case 'running':
-      return 'Answering now'
-    case 'paused':
-      return 'Paused'
-    case 'expired':
-      return 'Time’s up'
-    case 'selected':
-    case 'idle':
-      return 'Ready to answer'
-  }
-}
-
-function timerStatusMessage(phase: AnswerTimerPhase) {
-  switch (phase) {
-    case 'running':
-      return 'Answer out loud and keep going.'
-    case 'paused':
-      return 'The timer is paused.'
-    case 'expired':
-      return 'Time’s up. Reset to try this question again.'
-    case 'selected':
-      return 'Start when you are ready to answer.'
-    case 'idle':
-      return ''
-  }
 }
 
 function reducedMotionIsPreferred() {
@@ -87,7 +84,8 @@ function App() {
   const answerTimer = useAnswerTimer()
   const previousTimerPhaseRef = useRef(answerTimer.timer.phase)
 
-  const durationLocked = isDurationLocked(answerTimer.timer.phase)
+  const durationLocked = isDurationLocked(answerTimer.timer)
+  const currentTimerPresentation = timerPresentation[answerTimer.timer.phase]
 
   useEffect(() => {
     if (answerTimer.timer.phase === 'expired' && previousTimerPhaseRef.current !== 'expired') {
@@ -293,7 +291,7 @@ function App() {
               <div className="question-card-header">
                 <span className="eyebrow">Selected question</span>
                 {selectedQuestion ? (
-                  <span className="question-index">{questionStatusLabel(answerTimer.timer.phase)}</span>
+                  <span className="question-index">{currentTimerPresentation.questionStatus}</span>
                 ) : null}
               </div>
 
@@ -326,7 +324,7 @@ function App() {
                       >
                         {formatRemainingTime(answerTimer.timer.remainingMs)}
                       </div>
-                      <p className="timer-status">{timerStatusMessage(answerTimer.timer.phase)}</p>
+                      <p className="timer-status">{currentTimerPresentation.statusMessage}</p>
                     </div>
                     <div className="timer-actions">
                       {answerTimer.timer.phase === 'selected' ? (

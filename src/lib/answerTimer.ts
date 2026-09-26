@@ -6,6 +6,7 @@ export type AnswerTimerPhase = 'idle' | 'selected' | 'running' | 'paused' | 'exp
 
 export type AnswerTimerState = {
   phase: AnswerTimerPhase
+  hasStarted: boolean
   durationSeconds: number
   remainingMs: number
   deadlineMs: number | null
@@ -34,6 +35,7 @@ export function createAnswerTimer(durationSeconds = DEFAULT_DURATION_SECONDS): A
 
   return {
     phase: 'idle',
+    hasStarted: false,
     durationSeconds: normalizedDuration,
     remainingMs: normalizedDuration * 1000,
     deadlineMs: null,
@@ -81,11 +83,12 @@ export function transitionAnswerTimer(
       return {
         ...state,
         phase: 'selected',
+        hasStarted: false,
         remainingMs: state.durationSeconds * 1000,
         deadlineMs: null,
       }
     case 'set-duration':
-      if (state.phase !== 'idle' && state.phase !== 'selected') {
+      if ((state.phase !== 'idle' && state.phase !== 'selected') || state.hasStarted) {
         return state
       }
 
@@ -107,6 +110,7 @@ export function transitionAnswerTimer(
       return {
         ...state,
         phase: 'running',
+        hasStarted: true,
         deadlineMs: action.now + state.remainingMs,
       }
     case 'tick':
@@ -158,12 +162,12 @@ export function transitionAnswerTimer(
   }
 }
 
-export function isDurationLocked(phase: AnswerTimerPhase): boolean {
-  return phase === 'running' || phase === 'paused' || phase === 'expired'
+export function isDurationLocked(state: AnswerTimerState): boolean {
+  return state.hasStarted
 }
 
 export function requiresAbandonmentConfirmation(phase: AnswerTimerPhase): boolean {
-  return isDurationLocked(phase)
+  return phase === 'running' || phase === 'paused' || phase === 'expired'
 }
 
 export function canAbandonRound(phase: AnswerTimerPhase, confirmed: boolean): boolean {
