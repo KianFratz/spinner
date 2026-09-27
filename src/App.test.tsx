@@ -133,6 +133,12 @@ describe('timed practice round', () => {
     vi.setSystemTime(new Date(2026, 8, 27, 23, 59, 0))
     renderApp()
 
+    expect(
+      container.querySelector(
+        'button[aria-label="September 27, 2026: 0 questions answered."]',
+      ),
+    ).not.toBeNull()
+
     click(findButton(container, 'Spin question'))
     act(() => vi.advanceTimersByTime(1_800))
 
@@ -147,6 +153,15 @@ describe('timed practice round', () => {
 
     expect(container.textContent).toContain('Answer saved')
     expect(findButton(container, 'Answered').disabled).toBe(true)
+    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(
+      container.querySelector(
+        'button[aria-label="September 27, 2026: 1 question answered."]',
+      ),
+    ).not.toBeNull()
+    expect(container.querySelector('.activity-detail')?.textContent).toBe(
+      'September 27, 2026: 1 question answered.',
+    )
     expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
       version: 1,
       timerSeconds: 60,
@@ -167,11 +182,23 @@ describe('timed practice round', () => {
     click(findButton(container, 'Mark answered'))
 
     expect(container.textContent).toContain('Answer completed, but it was not saved')
+    expect(container.textContent).toContain('0 answers in the last 52 weeks')
+    expect(
+      container.querySelector(
+        'button[aria-label="September 27, 2026: 0 questions answered."]',
+      ),
+    ).not.toBeNull()
     expect(window.localStorage.getItem('interview-spin:v1')).toBeNull()
 
     click(findButton(container, 'Retry saving'))
 
     expect(container.textContent).toContain('Answer saved')
+    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(
+      container.querySelector(
+        'button[aria-label="September 27, 2026: 1 question answered."]',
+      ),
+    ).not.toBeNull()
     expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
       version: 1,
       timerSeconds: 60,

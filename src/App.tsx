@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { CircleHelp } from 'lucide-react'
+import ActivityGrid from './components/ActivityGrid'
 import Spinner from './components/Spinner'
 import { questions } from './data/questions'
 import {
@@ -449,6 +450,8 @@ function App() {
             {announcement}
           </p>
         </section>
+
+        <ActivityGrid activityByDate={activity.data.activityByDate} />
       </main>
 
       <footer className="site-footer">

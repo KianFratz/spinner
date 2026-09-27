@@ -46,12 +46,18 @@ export function useActivityData() {
       },
     }
 
-    setData(nextData)
-    return persist(nextData)
+    const saved = persist(nextData)
+
+    if (saved) {
+      setData(nextData)
+    }
+
+    return saved
   }
 
   function retrySave() {
-    const result = saveBrowserActivityData(pendingDataRef.current ?? data)
+    const nextData = pendingDataRef.current ?? data
+    const result = saveBrowserActivityData(nextData)
 
     if (!result.ok) {
       setStorageMessage(result.message)
@@ -59,6 +65,7 @@ export function useActivityData() {
     }
 
     pendingDataRef.current = null
+    setData(nextData)
     setNeedsRecovery(false)
     setStorageMessage(null)
     return true
