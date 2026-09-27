@@ -183,12 +183,16 @@ export function isDurationLocked(state: AnswerTimerState): boolean {
   return state.hasStarted && state.phase !== 'completed'
 }
 
-export function requiresAbandonmentConfirmation(phase: AnswerTimerPhase): boolean {
+function hasActiveAnswer(phase: AnswerTimerPhase) {
   return phase === 'running' || phase === 'paused' || phase === 'expired'
 }
 
+export function requiresAbandonmentConfirmation(phase: AnswerTimerPhase): boolean {
+  return hasActiveAnswer(phase)
+}
+
 export function canCompleteRound(phase: AnswerTimerPhase): boolean {
-  return phase === 'running' || phase === 'paused' || phase === 'expired'
+  return hasActiveAnswer(phase)
 }
 
 export function canAbandonRound(phase: AnswerTimerPhase, confirmed: boolean): boolean {
