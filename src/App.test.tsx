@@ -100,6 +100,7 @@ describe('timed practice round', () => {
 
     expect(durationInput?.disabled).toBe(true)
     expect(findButton(container, 'Start answer timer')).toBeTruthy()
+    expect(hasButton(container, 'Mark answered')).toBe(false)
   })
 
   it('loads and persists the timer preference in the activity document', () => {

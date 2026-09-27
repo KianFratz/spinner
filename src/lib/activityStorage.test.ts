@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ACTIVITY_STORAGE_KEY,
   createDefaultActivityData,
+  loadBrowserActivityData,
   loadActivityData,
+  saveBrowserActivityData,
   saveActivityData,
   validateActivityData,
 } from './activityStorage'
@@ -83,6 +85,25 @@ describe('activity storage', () => {
       ok: false,
       message: 'Your progress could not be saved in this browser.',
     })
+  })
+
+  it('handles failures while acquiring browser storage itself', () => {
+    vi.stubGlobal(
+      'window',
+      Object.defineProperty({}, 'localStorage', {
+        get() {
+          throw new DOMException('Blocked', 'SecurityError')
+        },
+      }),
+    )
+
+    expect(loadBrowserActivityData().needsRecovery).toBe(true)
+    expect(saveBrowserActivityData(createDefaultActivityData())).toEqual({
+      ok: false,
+      message: 'Your progress could not be saved in this browser.',
+    })
+
+    vi.unstubAllGlobals()
   })
 
   it('writes only the versioned aggregate document under the stable key', () => {

@@ -165,7 +165,7 @@ export function transitionAnswerTimer(
         deadlineMs: null,
       }
     case 'complete':
-      if (!state.hasStarted || state.phase === 'completed') {
+      if (!canCompleteRound(state.phase)) {
         return state
       }
 
@@ -184,6 +184,10 @@ export function isDurationLocked(state: AnswerTimerState): boolean {
 }
 
 export function requiresAbandonmentConfirmation(phase: AnswerTimerPhase): boolean {
+  return phase === 'running' || phase === 'paused' || phase === 'expired'
+}
+
+export function canCompleteRound(phase: AnswerTimerPhase): boolean {
   return phase === 'running' || phase === 'paused' || phase === 'expired'
 }
 

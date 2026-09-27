@@ -108,6 +108,18 @@ export function loadActivityData(storage: StorageAccess): ActivityLoadResult {
   }
 }
 
+export function loadBrowserActivityData(): ActivityLoadResult {
+  try {
+    return loadActivityData(window.localStorage)
+  } catch {
+    return {
+      data: createDefaultActivityData(),
+      needsRecovery: true,
+      recoveryMessage: unavailableStoredDataMessage,
+    }
+  }
+}
+
 export function saveActivityData(
   storage: StorageAccess,
   data: ActivityData,
@@ -121,6 +133,14 @@ export function saveActivityData(
   try {
     storage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(validatedData))
     return { ok: true }
+  } catch {
+    return { ok: false, message: failedWriteMessage }
+  }
+}
+
+export function saveBrowserActivityData(data: ActivityData): ActivitySaveResult {
+  try {
+    return saveActivityData(window.localStorage, data)
   } catch {
     return { ok: false, message: failedWriteMessage }
   }
