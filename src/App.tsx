@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { CircleHelp } from 'lucide-react'
 import Spinner from './components/Spinner'
 import { questions } from './data/questions'
 import {
@@ -263,8 +264,8 @@ function App() {
             IS
           </span>
           <div>
-            <p className="eyebrow">Interview practice, one prompt at a time</p>
             <h1>Interview Spin</h1>
+            <p className="brand-tagline">Interview practice, one prompt at a time</p>
           </div>
         </div>
         <p className="header-note">{questions.length} carefully chosen prompts for software engineers.</p>
@@ -274,7 +275,6 @@ function App() {
         <section className="practice-section" aria-labelledby="practice-heading">
           <div className="section-intro">
             <div>
-              <p className="eyebrow">Practice round</p>
               <h2 id="practice-heading">Practice one software engineering question at a time.</h2>
             </div>
             <p className="section-description">
@@ -351,9 +351,11 @@ function App() {
 
             <article className="question-card">
               <div className="question-card-header">
-                <span className="eyebrow">Selected question</span>
+                <span className="meta-label">Selected question</span>
                 {selectedQuestion ? (
-                  <span className="question-index">{currentTimerPresentation.questionStatus}</span>
+                  <span className="question-index" data-phase={answerTimer.timer.phase}>
+                    {currentTimerPresentation.questionStatus}
+                  </span>
                 ) : null}
               </div>
 
@@ -365,9 +367,13 @@ function App() {
                   </div>
                   <p className="question-prompt">{selectedQuestion.prompt}</p>
                   <p className="question-footer">Take a moment to outline your answer before you speak.</p>
-                  <div className="answer-timer-card" aria-labelledby="answer-timer-heading">
+                  <div
+                    className="answer-timer-card"
+                    data-phase={answerTimer.timer.phase}
+                    aria-labelledby="answer-timer-heading"
+                  >
                     <div className="answer-timer-card__header">
-                      <span className="eyebrow" id="answer-timer-heading">
+                      <span className="meta-label" id="answer-timer-heading">
                         Answer timer
                       </span>
                       <span className="answer-timer-card__duration">
@@ -430,7 +436,7 @@ function App() {
               ) : (
                 <div className="question-placeholder">
                   <span className="placeholder-dot" aria-hidden="true">
-                    ?
+                    <CircleHelp size={25} strokeWidth={1.8} />
                   </span>
                   <p>Your selected prompt will land here.</p>
                   <span>Use the category filter to shape the next spin.</span>

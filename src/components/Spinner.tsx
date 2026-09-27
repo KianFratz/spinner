@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 
 type SpinnerProps = {
   isSpinning: boolean
@@ -40,7 +41,7 @@ function Spinner({ isSpinning, onSpin, animationDurationMs }: SpinnerProps) {
       >
         <span>{isSpinning ? 'Spinning' : 'Spin question'}</span>
         <span className="button-arrow" aria-hidden="true">
-          ↗
+          <ArrowUpRight size={15} strokeWidth={2.5} />
         </span>
       </button>
     </div>

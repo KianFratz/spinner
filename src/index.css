@@ -18,16 +18,29 @@
   --accent-strong: #c94b28;
   --accent-soft: #fbe3d9;
   --success: #317054;
+  --warning: #8a5f16;
+  --danger: #9b3d22;
 }
 
 * {
   box-sizing: border-box;
 }
 
+::selection {
+  color: var(--ink);
+  background: #f7c5b2;
+}
+
+html {
+  scrollbar-color: var(--line-strong) var(--panel-muted);
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
+  caret-color: var(--accent);
 }
 
 button:focus-visible {
