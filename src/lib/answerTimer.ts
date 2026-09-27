@@ -2,7 +2,13 @@ export const DEFAULT_DURATION_SECONDS = 60
 export const MIN_DURATION_SECONDS = 30
 export const MAX_DURATION_SECONDS = 600
 
-export type AnswerTimerPhase = 'idle' | 'selected' | 'running' | 'paused' | 'expired'
+export type AnswerTimerPhase =
+  | 'idle'
+  | 'selected'
+  | 'running'
+  | 'paused'
+  | 'expired'
+  | 'completed'
 
 export type AnswerTimerState = {
   phase: AnswerTimerPhase
@@ -20,6 +26,7 @@ export type AnswerTimerAction =
   | { type: 'pause'; now: number }
   | { type: 'resume'; now: number }
   | { type: 'reset' }
+  | { type: 'complete' }
   | { type: 'abandon' }
 
 export function normalizeDurationSeconds(value: number): number {
@@ -157,13 +164,23 @@ export function transitionAnswerTimer(
         remainingMs: state.durationSeconds * 1000,
         deadlineMs: null,
       }
+    case 'complete':
+      if (!state.hasStarted || state.phase === 'completed') {
+        return state
+      }
+
+      return {
+        ...state,
+        phase: 'completed',
+        deadlineMs: null,
+      }
     case 'abandon':
       return createAnswerTimer(state.durationSeconds)
   }
 }
 
 export function isDurationLocked(state: AnswerTimerState): boolean {
-  return state.hasStarted
+  return state.hasStarted && state.phase !== 'completed'
 }
 
 export function requiresAbandonmentConfirmation(phase: AnswerTimerPhase): boolean {

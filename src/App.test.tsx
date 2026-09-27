@@ -24,9 +24,24 @@ function click(element: HTMLElement) {
   })
 }
 
+function hasButton(container: HTMLElement, name: string) {
+  return [...container.querySelectorAll('button')].some(
+    (candidate) =>
+      candidate.getAttribute('aria-label') === name || candidate.textContent?.includes(name),
+  )
+}
+
 describe('timed practice round', () => {
   let container: HTMLDivElement
-  let root: Root
+  let root: Root | null
+
+  function renderApp() {
+    root = createRoot(container)
+
+    act(() => {
+      root?.render(<App />)
+    })
+  }
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -44,17 +59,14 @@ describe('timed practice round', () => {
       }),
     )
 
+    window.localStorage.clear()
     container = document.createElement('div')
     document.body.append(container)
-    root = createRoot(container)
-
-    act(() => {
-      root.render(<App />)
-    })
+    root = null
   })
 
   afterEach(() => {
-    act(() => root.unmount())
+    act(() => root?.unmount())
     container.remove()
     vi.useRealTimers()
     vi.restoreAllMocks()
@@ -62,6 +74,7 @@ describe('timed practice round', () => {
   })
 
   it('preserves an active round when abandonment is cancelled and keeps duration locked after reset', () => {
+    renderApp()
     click(findButton(container, 'Spin question'))
 
     act(() => {
@@ -87,5 +100,169 @@ describe('timed practice round', () => {
 
     expect(durationInput?.disabled).toBe(true)
     expect(findButton(container, 'Start answer timer')).toBeTruthy()
+  })
+
+  it('loads and persists the timer preference in the activity document', () => {
+    window.localStorage.setItem(
+      'interview-spin:v1',
+      JSON.stringify({ version: 1, timerSeconds: 90, activityByDate: {} }),
+    )
+    renderApp()
+
+    const durationInput = container.querySelector<HTMLInputElement>('#answer-duration')
+    expect(durationInput?.value).toBe('90')
+
+    act(() => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set
+      valueSetter?.call(durationInput, '120')
+      durationInput?.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 120,
+      activityByDate: {},
+    })
+  })
+
+  it('saves one completion for the local date and immediately guards duplicate activation', () => {
+    vi.setSystemTime(new Date(2026, 8, 27, 23, 59, 0))
+    renderApp()
+
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+
+    expect(hasButton(container, 'Mark answered')).toBe(false)
+    click(findButton(container, 'Start answer timer'))
+
+    const markAnswered = findButton(container, 'Mark answered')
+    act(() => {
+      markAnswered.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      markAnswered.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(container.textContent).toContain('Answer saved')
+    expect(findButton(container, 'Answered').disabled).toBe(true)
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 60,
+      activityByDate: { '2026-09-27': 1 },
+    })
+  })
+
+  it('keeps a failed completion available and retries without double-counting', () => {
+    vi.setSystemTime(new Date(2026, 8, 27, 12, 0, 0))
+    renderApp()
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('Full', 'QuotaExceededError')
+    })
+    click(findButton(container, 'Mark answered'))
+
+    expect(container.textContent).toContain('Answer completed, but it was not saved')
+    expect(window.localStorage.getItem('interview-spin:v1')).toBeNull()
+
+    click(findButton(container, 'Retry saving'))
+
+    expect(container.textContent).toContain('Answer saved')
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 60,
+      activityByDate: { '2026-09-27': 1 },
+    })
+  })
+
+  it('does not overwrite malformed saved data until recovery is explicit', () => {
+    const malformedData = '{"version":2,"timerSeconds":90}'
+    window.localStorage.setItem('interview-spin:v1', malformedData)
+    renderApp()
+
+    expect(container.textContent).toContain('saved practice data could not be loaded')
+
+    const durationInput = container.querySelector<HTMLInputElement>('#answer-duration')
+    act(() => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set
+      valueSetter?.call(durationInput, '120')
+      durationInput?.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(window.localStorage.getItem('interview-spin:v1')).toBe(malformedData)
+    expect(container.textContent).toContain('saved practice data could not be loaded')
+
+    click(findButton(container, 'Replace saved data'))
+
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 120,
+      activityByDate: {},
+    })
+    expect(container.textContent).not.toContain('saved practice data could not be loaded')
+  })
+
+  it('retains aggregates but never restores an unfinished round after reload', () => {
+    window.localStorage.setItem(
+      'interview-spin:v1',
+      JSON.stringify({
+        version: 1,
+        timerSeconds: 75,
+        activityByDate: { '2026-09-26': 2 },
+      }),
+    )
+    renderApp()
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+    expect(hasButton(container, 'Mark answered')).toBe(true)
+
+    act(() => root?.unmount())
+    root = null
+    renderApp()
+
+    expect(container.querySelector('.question-prompt')).toBeNull()
+    expect(hasButton(container, 'Mark answered')).toBe(false)
+    expect(container.querySelector<HTMLInputElement>('#answer-duration')?.value).toBe('75')
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 75,
+      activityByDate: { '2026-09-26': 2 },
+    })
+  })
+
+  it('replaces a completed round without abandonment confirmation', () => {
+    renderApp()
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+    click(findButton(container, 'Mark answered'))
+
+    const confirm = vi.spyOn(window, 'confirm')
+    click(findButton(container, 'Spin question'))
+
+    expect(confirm).not.toHaveBeenCalled()
+  })
+
+  it('keeps Mark answered available while paused and after expiry', () => {
+    renderApp()
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+
+    click(findButton(container, 'Pause'))
+    expect(hasButton(container, 'Mark answered')).toBe(true)
+
+    click(findButton(container, 'Resume'))
+    act(() => vi.advanceTimersByTime(60_000))
+
+    expect(container.textContent).toContain('Time’s up')
+    expect(hasButton(container, 'Mark answered')).toBe(true)
   })
 })

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Spinner from './components/Spinner'
 import { questions } from './data/questions'
 import {
-  DEFAULT_DURATION_SECONDS,
   MAX_DURATION_SECONDS,
   MIN_DURATION_SECONDS,
   canAbandonRound,
@@ -17,6 +16,12 @@ import {
   type Question,
   type QuestionFilter,
 } from './lib/questionPicker'
+import {
+  loadActivityData,
+  saveActivityData,
+  type ActivityData,
+} from './lib/activityStorage'
+import { formatLocalDate } from './lib/localDate'
 import './App.css'
 
 const spinDurationMs = 1800
@@ -51,6 +56,10 @@ const timerPresentation: Record<
     questionStatus: 'Time’s up',
     statusMessage: 'Time’s up. Reset to try this question again.',
   },
+  completed: {
+    questionStatus: 'Completed',
+    statusMessage: 'This practice round is complete.',
+  },
 }
 
 function categoryLabel(category: Question['category']) {
@@ -71,17 +80,30 @@ function reducedMotionIsPreferred() {
 }
 
 function App() {
+  const [initialActivityLoad] = useState(() => loadActivityData(window.localStorage))
   const pickerRef = useRef(createQuestionPicker(questions))
   const spinTimeoutRef = useRef<number | null>(null)
   const spinningRef = useRef(false)
+  const completionGuardRef = useRef(false)
+  const pendingActivityDataRef = useRef<ActivityData | null>(null)
   const [activeFilter, setActiveFilter] = useState<QuestionFilter>('all')
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
-  const [durationInput, setDurationInput] = useState(String(DEFAULT_DURATION_SECONDS))
+  const [completionStatus, setCompletionStatus] = useState<'idle' | 'saved' | 'failed'>('idle')
+  const [activityData, setActivityData] = useState(initialActivityLoad.data)
+  const [needsStorageRecovery, setNeedsStorageRecovery] = useState(
+    initialActivityLoad.needsRecovery,
+  )
+  const [storageMessage, setStorageMessage] = useState(
+    initialActivityLoad.recoveryMessage,
+  )
+  const [durationInput, setDurationInput] = useState(
+    String(initialActivityLoad.data.timerSeconds),
+  )
   const [announcement, setAnnouncement] = useState(
     'Choose a category, then spin for an interview question.',
   )
-  const answerTimer = useAnswerTimer()
+  const answerTimer = useAnswerTimer(initialActivityLoad.data.timerSeconds)
   const previousTimerPhaseRef = useRef(answerTimer.timer.phase)
 
   const durationLocked = isDurationLocked(answerTimer.timer)
@@ -112,6 +134,8 @@ function App() {
     setActiveFilter(filter)
     setSelectedQuestion(null)
     answerTimer.abandon()
+    completionGuardRef.current = false
+    setCompletionStatus('idle')
     setAnnouncement(`${filter === 'all' ? 'All' : categoryLabel(filter)} questions ready.`)
   }
 
@@ -136,6 +160,8 @@ function App() {
     const duration = reducedMotionIsPreferred() ? 120 : spinDurationMs
 
     answerTimer.abandon()
+    completionGuardRef.current = false
+    setCompletionStatus('idle')
     spinningRef.current = true
     setSelectedQuestion(null)
     setIsSpinning(true)
@@ -165,6 +191,27 @@ function App() {
       nextDuration <= MAX_DURATION_SECONDS
     ) {
       answerTimer.setDuration(nextDuration)
+      const nextActivityData = { ...activityData, timerSeconds: nextDuration }
+      setActivityData(nextActivityData)
+
+      if (needsStorageRecovery) {
+        pendingActivityDataRef.current = nextActivityData
+        return
+      }
+
+      const saveResult = saveActivityData(window.localStorage, nextActivityData)
+
+      if (saveResult.ok) {
+        pendingActivityDataRef.current = null
+        setStorageMessage(null)
+        if (completionStatus === 'failed') {
+          setCompletionStatus('saved')
+          setAnnouncement('Answer saved for today.')
+        }
+      } else {
+        pendingActivityDataRef.current = nextActivityData
+        setStorageMessage(saveResult.message)
+      }
     }
   }
 
@@ -202,6 +249,67 @@ function App() {
     setAnnouncement('Timer reset. The full answer time is ready.')
   }
 
+  function handleMarkAnswered() {
+    if (!answerTimer.timer.hasStarted || completionGuardRef.current) {
+      return
+    }
+
+    completionGuardRef.current = true
+    const completionDate = formatLocalDate(new Date())
+    const nextActivityData = {
+      ...activityData,
+      activityByDate: {
+        ...activityData.activityByDate,
+        [completionDate]: (activityData.activityByDate[completionDate] ?? 0) + 1,
+      },
+    }
+
+    setActivityData(nextActivityData)
+
+    if (needsStorageRecovery) {
+      pendingActivityDataRef.current = nextActivityData
+      answerTimer.complete()
+      setCompletionStatus('failed')
+      setAnnouncement('Answer completed, but it was not saved.')
+      return
+    }
+
+    const saveResult = saveActivityData(window.localStorage, nextActivityData)
+
+    answerTimer.complete()
+
+    if (saveResult.ok) {
+      pendingActivityDataRef.current = null
+      setCompletionStatus('saved')
+      setStorageMessage(null)
+      setAnnouncement('Answer saved for today.')
+    } else {
+      pendingActivityDataRef.current = nextActivityData
+      setCompletionStatus('failed')
+      setStorageMessage(saveResult.message)
+      setAnnouncement('Answer completed, but it was not saved.')
+    }
+  }
+
+  function handleRetrySave() {
+    const dataToSave = pendingActivityDataRef.current ?? activityData
+    const saveResult = saveActivityData(window.localStorage, dataToSave)
+
+    if (!saveResult.ok) {
+      setStorageMessage(saveResult.message)
+      return
+    }
+
+    pendingActivityDataRef.current = null
+    setNeedsStorageRecovery(false)
+    setStorageMessage(null)
+
+    if (completionStatus === 'failed') {
+      setCompletionStatus('saved')
+      setAnnouncement('Answer saved for today.')
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -228,6 +336,15 @@ function App() {
               Pick a lane or keep it open. Your next question is decided before the wheel starts moving.
             </p>
           </div>
+
+          {storageMessage ? (
+            <div className="storage-notice" role="alert">
+              <p>{storageMessage}</p>
+              <button type="button" onClick={handleRetrySave}>
+                {needsStorageRecovery ? 'Replace saved data' : 'Retry saving'}
+              </button>
+            </div>
+          ) : null}
 
           <div className="practice-layout">
             <div className="spinner-panel">
@@ -342,7 +459,27 @@ function App() {
                           Reset
                         </button>
                       ) : null}
+                      {answerTimer.timer.hasStarted ? (
+                        <button
+                          className="timer-primary-button"
+                          type="button"
+                          disabled={completionStatus !== 'idle'}
+                          onClick={handleMarkAnswered}
+                        >
+                          {completionStatus === 'idle' ? 'Mark answered' : 'Answered'}
+                        </button>
+                      ) : null}
                     </div>
+                    {completionStatus === 'saved' ? (
+                      <p className="completion-message" role="status">
+                        Answer saved
+                      </p>
+                    ) : null}
+                    {completionStatus === 'failed' ? (
+                      <p className="completion-message completion-message--error" role="status">
+                        Answer completed, but it was not saved
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               ) : (

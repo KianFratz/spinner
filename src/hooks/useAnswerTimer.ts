@@ -17,6 +17,7 @@ export function useAnswerTimer(durationSeconds = DEFAULT_DURATION_SECONDS): {
   pause: () => void
   resume: () => void
   reset: () => void
+  complete: () => void
   abandon: () => void
 } {
   const [timer, setTimer] = useState(() => createAnswerTimer(durationSeconds))
@@ -47,6 +48,7 @@ export function useAnswerTimer(durationSeconds = DEFAULT_DURATION_SECONDS): {
     pause: () => dispatch({ type: 'pause', now: performance.now() }),
     resume: () => dispatch({ type: 'resume', now: performance.now() }),
     reset: () => dispatch({ type: 'reset' }),
+    complete: () => dispatch({ type: 'complete' }),
     abandon: () => dispatch({ type: 'abandon' }),
   }
 }
