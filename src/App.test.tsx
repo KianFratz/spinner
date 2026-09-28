@@ -31,27 +31,6 @@ function hasButton(container: HTMLElement, name: string) {
   )
 }
 
-async function chooseBackup(container: HTMLElement, contents: string) {
-  const input = container.querySelector<HTMLInputElement>('#import-data')
-
-  if (!input) {
-    throw new Error('Could not find import input')
-  }
-
-  const file = new File([contents], 'interview-spin-backup.json', {
-    type: 'application/json',
-  })
-
-  Object.defineProperty(input, 'files', {
-    configurable: true,
-    value: [file],
-  })
-
-  await act(async () => {
-    input.dispatchEvent(new Event('change', { bubbles: true }))
-  })
-}
-
 describe('timed practice round', () => {
   let container: HTMLDivElement
   let root: Root | null
@@ -372,129 +351,27 @@ describe('timed practice round', () => {
     expect(hasButton(container, 'Mark answered')).toBe(true)
   })
 
-  it('exports the exact validated document with a local-date backup filename', async () => {
-    vi.setSystemTime(new Date(2026, 8, 28, 12, 0, 0))
-    window.localStorage.setItem(
-      'interview-spin:v1',
-      JSON.stringify({
-        version: 1,
-        timerSeconds: 90,
-        activityByDate: { '2026-09-28': 4 },
-      }),
-    )
+  it('omits the removed branding, backup controls, and helper copy', () => {
     renderApp()
 
-    const createObjectURL = vi.fn().mockReturnValue('blob:interview-spin-backup')
-    const revokeObjectURL = vi.fn()
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL })
-    const anchorClick = vi
-      .spyOn(HTMLAnchorElement.prototype, 'click')
-      .mockImplementation(() => {})
-
-    click(findButton(container, 'Export data'))
-
-    const downloadedLink = anchorClick.mock.instances[0] as HTMLAnchorElement | undefined
-    expect(downloadedLink?.download).toBe('interview-spin-backup-2026-09-28.json')
-    expect(await (createObjectURL.mock.calls[0][0] as Blob).text()).toBe(
-      JSON.stringify({
-        version: 1,
-        timerSeconds: 90,
-        activityByDate: { '2026-09-28': 4 },
-      }),
-    )
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:interview-spin-backup')
-    expect(container.textContent).toContain('backup was downloaded')
-  })
-
-  it('cancels a valid import without changing current progress', async () => {
-    const currentData = {
-      version: 1,
-      timerSeconds: 60,
-      activityByDate: { '2026-09-28': 1 },
+    for (const text of [
+      'IS',
+      'Interview Spin',
+      'Interview practice, one prompt at a time',
+      '64 carefully chosen prompts for software engineers',
+      'Export data',
+      'Import data',
+      'Your Interview Spin backup was downloaded',
+      'Practice one software engineering question at a time',
+      'Pick a lane or keep it open. Your next question is decided before the wheel starts moving',
+      'Built for focused practice.',
+      'Keyboard ready',
+    ]) {
+      expect(container.textContent).not.toContain(text)
     }
-    const importedData = {
-      version: 1,
-      timerSeconds: 120,
-      activityByDate: { '2026-09-28': 5 },
-    }
-    window.localStorage.setItem('interview-spin:v1', JSON.stringify(currentData))
-    renderApp()
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
 
-    await chooseBackup(container, JSON.stringify(importedData))
-
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Replace your current Interview Spin progress with this backup? Current progress will be replaced only after the backup is saved.',
-    )
-    expect(window.localStorage.getItem('interview-spin:v1')).toBe(JSON.stringify(currentData))
-    expect(container.querySelector<HTMLInputElement>('#answer-duration')?.value).toBe('60')
-    expect(container.textContent).toContain('Import cancelled')
-  })
-
-  it('validates an imported backup before asking for replacement', async () => {
-    const currentData = {
-      version: 1,
-      timerSeconds: 60,
-      activityByDate: { '2026-09-28': 1 },
-    }
-    window.localStorage.setItem('interview-spin:v1', JSON.stringify(currentData))
-    renderApp()
-    const confirm = vi.spyOn(window, 'confirm')
-
-    await chooseBackup(container, JSON.stringify({ ...currentData, version: 2 }))
-
-    expect(confirm).not.toHaveBeenCalled()
-    expect(window.localStorage.getItem('interview-spin:v1')).toBe(JSON.stringify(currentData))
-    expect(container.textContent).toContain('unsupported schema version')
-  })
-
-  it('persists a confirmed import before showing restored timer and activity', async () => {
-    vi.setSystemTime(new Date(2026, 8, 28, 12, 0, 0))
-    const importedData = {
-      version: 1,
-      timerSeconds: 120,
-      activityByDate: { '2026-09-28': 5 },
-    }
-    window.localStorage.setItem(
-      'interview-spin:v1',
-      JSON.stringify({ version: 1, timerSeconds: 60, activityByDate: {} }),
-    )
-    renderApp()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-
-    await chooseBackup(container, JSON.stringify(importedData))
-
-    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual(
-      importedData,
-    )
-    expect(container.querySelector<HTMLInputElement>('#answer-duration')?.value).toBe('120')
-    expect(container.textContent).toContain('5 answers in the last 52 weeks')
-    expect(container.textContent).toContain('backup was imported')
-  })
-
-  it('keeps current progress when saving a confirmed import fails', async () => {
-    const currentData = {
-      version: 1,
-      timerSeconds: 60,
-      activityByDate: { '2026-09-28': 1 },
-    }
-    const importedData = {
-      version: 1,
-      timerSeconds: 120,
-      activityByDate: { '2026-09-28': 5 },
-    }
-    window.localStorage.setItem('interview-spin:v1', JSON.stringify(currentData))
-    renderApp()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
-      throw new DOMException('Full', 'QuotaExceededError')
-    })
-
-    await chooseBackup(container, JSON.stringify(importedData))
-
-    expect(window.localStorage.getItem('interview-spin:v1')).toBe(JSON.stringify(currentData))
-    expect(container.querySelector<HTMLInputElement>('#answer-duration')?.value).toBe('60')
-    expect(container.textContent).toContain('imported backup could not be saved')
-    expect(container.textContent).toContain('current progress was kept')
+    expect(container.querySelector('.brand-mark')).toBeNull()
+    expect(container.querySelector('.backup-controls')).toBeNull()
+    expect(container.querySelector('.site-footer')).toBeNull()
   })
 })
