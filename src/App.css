@@ -747,30 +747,34 @@ button {
   height: 18px;
   min-height: 18px;
   padding: 0;
-  border: 0;
+  border: 1px solid #7b8793;
   border-radius: 4px;
-  background: #e8edf2;
+  background: #d7dde4;
   cursor: pointer;
 }
 
 .activity-day[data-level='1'],
 .activity-legend__swatch[data-level='1'] {
-  background: #c9e8de;
+  border-color: #4d8b76;
+  background: #b7dfd2;
 }
 
 .activity-day[data-level='2'],
 .activity-legend__swatch[data-level='2'] {
-  background: #81cdb4;
+  border-color: #286f58;
+  background: #6bb99d;
 }
 
 .activity-day[data-level='3'],
 .activity-legend__swatch[data-level='3'] {
-  background: #318c70;
+  border-color: #174f3e;
+  background: #27775e;
 }
 
 .activity-day[data-level='4'],
 .activity-legend__swatch[data-level='4'] {
-  background: #155b47;
+  border-color: #052d22;
+  background: #0c4434;
 }
 
 .activity-day[data-today] {
@@ -825,8 +829,9 @@ button {
 .activity-legend__swatch {
   width: 14px;
   height: 14px;
+  border: 1px solid #7b8793;
   border-radius: 4px;
-  background: #e8edf2;
+  background: #d7dde4;
 }
 
 .question-placeholder {
