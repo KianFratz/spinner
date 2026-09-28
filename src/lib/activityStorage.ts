@@ -4,6 +4,7 @@ import {
   MAX_DURATION_SECONDS,
   MIN_DURATION_SECONDS,
 } from './answerTimer'
+import { formatLocalDate } from './localDate'
 
 export const ACTIVITY_STORAGE_KEY = 'interview-spin:v1'
 
@@ -56,6 +57,10 @@ export type ActivitySaveResult =
   | { ok: true }
   | { ok: false; message: string }
 
+export type ActivityImportResult =
+  | { ok: true; data: ActivityData }
+  | { ok: false; message: string }
+
 export function createDefaultActivityData(): ActivityData {
   return {
     version: 1,
@@ -68,6 +73,72 @@ export function validateActivityData(value: unknown): ActivityData | null {
   const result = activityDataSchema.safeParse(value)
 
   return result.success ? result.data : null
+}
+
+export function serializeActivityData(data: ActivityData): string | null {
+  const validatedData = validateActivityData(data)
+
+  return validatedData ? JSON.stringify(validatedData) : null
+}
+
+export function createActivityBackupFilename(date: Date): string {
+  return `interview-spin-backup-${formatLocalDate(date)}.json`
+}
+
+export function downloadActivityData(data: ActivityData, date = new Date()): boolean {
+  const serializedData = serializeActivityData(data)
+
+  if (!serializedData) {
+    return false
+  }
+
+  try {
+    const url = URL.createObjectURL(
+      new Blob([serializedData], { type: 'application/json' }),
+    )
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = createActivityBackupFilename(date)
+    link.click()
+    URL.revokeObjectURL(url)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export function parseActivityDataJson(value: string): ActivityImportResult {
+  let parsedValue: unknown
+
+  try {
+    parsedValue = JSON.parse(value)
+  } catch {
+    return { ok: false, message: 'The selected backup is not valid JSON.' }
+  }
+
+  if (isRecord(parsedValue) && parsedValue.version !== 1) {
+    return {
+      ok: false,
+      message: 'This Interview Spin backup uses an unsupported schema version.',
+    }
+  }
+
+  const data = validateActivityData(parsedValue)
+
+  if (!data) {
+    return {
+      ok: false,
+      message:
+        'This backup contains invalid Interview Spin progress. Check its timer setting, dates, and answer counts.',
+    }
+  }
+
+  return { ok: true, data }
 }
 
 export function loadActivityData(storage: StorageAccess): ActivityLoadResult {

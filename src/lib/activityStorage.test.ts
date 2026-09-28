@@ -4,8 +4,11 @@ import {
   createDefaultActivityData,
   loadBrowserActivityData,
   loadActivityData,
+  createActivityBackupFilename,
+  parseActivityDataJson,
   saveBrowserActivityData,
   saveActivityData,
+  serializeActivityData,
   validateActivityData,
 } from './activityStorage'
 
@@ -119,5 +122,47 @@ describe('activity storage', () => {
 
     expect(saveActivityData(storage, data)).toEqual({ ok: true })
     expect(storage.setItem).toHaveBeenCalledWith(ACTIVITY_STORAGE_KEY, JSON.stringify(data))
+  })
+})
+
+describe('activity backups', () => {
+  const backup = {
+    version: 1 as const,
+    timerSeconds: 90,
+    activityByDate: { '2026-09-27': 3 },
+  }
+
+  it('round trips the exact validated activity document as JSON', () => {
+    const serialized = serializeActivityData(backup)
+
+    expect(serialized).toBe(JSON.stringify(backup))
+    expect(parseActivityDataJson(serialized ?? '')).toEqual({ ok: true, data: backup })
+  })
+
+  it('uses the current local date in a predictable backup filename', () => {
+    expect(createActivityBackupFilename(new Date(2026, 8, 28, 23, 30))).toBe(
+      'interview-spin-backup-2026-09-28.json',
+    )
+  })
+
+  it.each([
+    ['malformed JSON', '{', /valid JSON/i],
+    [
+      'unsupported schema version',
+      JSON.stringify({ ...backup, version: 2 }),
+      /unsupported schema version/i,
+    ],
+    [
+      'invalid backup fields',
+      JSON.stringify({ ...backup, activityByDate: { '2026-02-29': 1 } }),
+      /invalid.*timer|date|count/i,
+    ],
+  ])('rejects %s without producing activity data', (_description, value, message) => {
+    const result = parseActivityDataJson(value)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.message).toMatch(message)
+    }
   })
 })

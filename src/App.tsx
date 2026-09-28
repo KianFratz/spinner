@@ -21,6 +21,10 @@ import {
   type QuestionFilter,
 } from './lib/questionPicker'
 import { formatLocalDate } from './lib/localDate'
+import {
+  downloadActivityData,
+  parseActivityDataJson,
+} from './lib/activityStorage'
 import './App.css'
 
 const spinDurationMs = 1800
@@ -82,12 +86,14 @@ function App() {
   const activity = useActivityData()
   const pickerRef = useRef(createQuestionPicker(questions))
   const spinTimeoutRef = useRef<number | null>(null)
+  const importInputRef = useRef<HTMLInputElement | null>(null)
   const spinningRef = useRef(false)
   const completionGuardRef = useRef(false)
   const [activeFilter, setActiveFilter] = useState<QuestionFilter>('all')
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
   const [completionStatus, setCompletionStatus] = useState<'idle' | 'saved' | 'failed'>('idle')
+  const [backupMessage, setBackupMessage] = useState<string | null>(null)
   const [durationInput, setDurationInput] = useState(
     String(activity.data.timerSeconds),
   )
@@ -257,6 +263,67 @@ function App() {
     }
   }
 
+  function handleExport() {
+    const exported = downloadActivityData(activity.data)
+
+    setBackupMessage(
+      exported
+        ? 'Your Interview Spin backup was downloaded.'
+        : 'Your Interview Spin backup could not be downloaded.',
+    )
+  }
+
+  async function handleImport(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) {
+      return
+    }
+
+    let parsedBackup
+
+    try {
+      parsedBackup = parseActivityDataJson(await file.text())
+    } catch {
+      setBackupMessage('The selected backup could not be read.')
+      return
+    }
+
+    if (!parsedBackup.ok) {
+      setBackupMessage(parsedBackup.message)
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Replace your current Interview Spin progress with this backup? Current progress will be replaced only after the backup is saved.',
+    )
+
+    if (!confirmed) {
+      setBackupMessage('Import cancelled. Your current progress was not changed.')
+      return
+    }
+
+    if (!activity.replaceData(parsedBackup.data)) {
+      setAnnouncement('Imported progress was not saved. Current progress was kept.')
+      return
+    }
+
+    if (spinTimeoutRef.current !== null) {
+      window.clearTimeout(spinTimeoutRef.current)
+      spinTimeoutRef.current = null
+    }
+
+    spinningRef.current = false
+    setIsSpinning(false)
+    setSelectedQuestion(null)
+    abandonRound()
+    answerTimer.setDuration(parsedBackup.data.timerSeconds)
+    setDurationInput(String(parsedBackup.data.timerSeconds))
+    setBackupMessage('Your Interview Spin backup was imported.')
+    setAnnouncement('Interview Spin backup imported successfully.')
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -282,6 +349,34 @@ function App() {
               Pick a lane or keep it open. Your next question is decided before the wheel starts moving.
             </p>
           </div>
+
+          <div className="backup-controls" aria-label="Progress backup">
+            <button className="backup-button" type="button" onClick={handleExport}>
+              Export data
+            </button>
+            <button
+              className="backup-button"
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+            >
+              Import data
+            </button>
+            <input
+              ref={importInputRef}
+              id="import-data"
+              className="sr-only"
+              type="file"
+              accept="application/json,.json"
+              onChange={handleImport}
+              aria-label="Choose Interview Spin backup file"
+            />
+          </div>
+
+          {backupMessage ? (
+            <p className="backup-message" role="status">
+              {backupMessage}
+            </p>
+          ) : null}
 
           {activity.storageMessage ? (
             <div className="storage-notice" role="alert">

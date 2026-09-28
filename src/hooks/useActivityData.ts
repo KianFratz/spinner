@@ -61,6 +61,13 @@ export function useActivityData() {
     return saved
   }
 
+  function applyPersistedData(nextData: ActivityData) {
+    pendingDataRef.current = null
+    setData(nextData)
+    setNeedsRecovery(false)
+    setStorageMessage(null)
+  }
+
   function retrySave() {
     const nextData = pendingDataRef.current ?? data
     const result = saveBrowserActivityData(nextData)
@@ -70,10 +77,21 @@ export function useActivityData() {
       return false
     }
 
-    pendingDataRef.current = null
-    setData(nextData)
-    setNeedsRecovery(false)
-    setStorageMessage(null)
+    applyPersistedData(nextData)
+    return true
+  }
+
+  function replaceData(nextData: ActivityData) {
+    const result = saveBrowserActivityData(nextData)
+
+    if (!result.ok) {
+      setStorageMessage(
+        'The imported backup could not be saved. Your current progress was kept.',
+      )
+      return false
+    }
+
+    applyPersistedData(nextData)
     return true
   }
 
@@ -84,5 +102,6 @@ export function useActivityData() {
     setTimerSeconds,
     recordCompletion,
     retrySave,
+    replaceData,
   }
 }
