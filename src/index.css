@@ -2,24 +2,37 @@
 
 :root {
   font-family: 'Geist Variable', Inter, ui-sans-serif, system-ui, sans-serif;
-  color: #181a1f;
-  background: #f6f2eb;
+  color: #2B2B2B;
+  background: #FFFFFF;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --ink: #181a1f;
-  --muted: #76736c;
-  --surface: #fffdf9;
-  --panel-muted: #f1eee7;
-  --line: #e5e0d7;
-  --line-strong: #d6d0c5;
-  --accent: #e05d35;
-  --accent-strong: #c94b28;
-  --accent-soft: #fbe3d9;
-  --success: #317054;
-  --warning: #8a5f16;
-  --danger: #9b3d22;
+  --ink: #2B2B2B;
+  --muted: #2B2B2B;
+  --surface: #FFFFFF;
+  --panel-muted: #D4D4D4;
+  --line: #D4D4D4;
+  --line-strong: #B3B3B3;
+  --accent: #2B2B2B;
+  --accent-strong: #2B2B2B;
+  --accent-soft: #D4D4D4;
+  --on-accent: #FFFFFF;
+  --focus-ring: #2B2B2B;
+  --success: #2B2B2B;
+  --warning: #2B2B2B;
+  --warning-soft: #D4D4D4;
+  --danger: #2B2B2B;
+  --activity-empty: #FFFFFF;
+  --activity-empty-border: #B3B3B3;
+  --activity-level-1: #D4D4D4;
+  --activity-level-1-border: #B3B3B3;
+  --activity-level-2: #B3B3B3;
+  --activity-level-2-border: #2B2B2B;
+  --activity-level-3: #2B2B2B;
+  --activity-level-3-border: #2B2B2B;
+  --activity-level-4: #2B2B2B;
+  --activity-level-4-border: #2B2B2B;
 }
 
 * {
@@ -28,7 +41,7 @@
 
 ::selection {
   color: var(--ink);
-  background: #f7c5b2;
+  background: #D4D4D4;
 }
 
 html {
@@ -44,6 +57,6 @@ body {
 }
 
 button:focus-visible {
-  outline: 3px solid rgba(224, 93, 53, 0.42);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }

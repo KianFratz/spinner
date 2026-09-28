@@ -51,10 +51,10 @@ This is a layout guide, not a requirement to reproduce an ASCII diagram in the p
 
 ### Visual behavior
 
-- Use a calm neutral surface with a strong accent for the spin button and timer. Keep question text large and readable.
+- Use a white surface and the grayscale palette `#FFFFFF`, `#D4D4D4`, `#B3B3B3`, and `#2B2B2B` throughout. Use `#2B2B2B` for readable text, actions, and focus; `#B3B3B3` for structure; and `#D4D4D4` for quiet fills. Keep question text large and readable.
 - Animate a wheel of topics or prompt previews, then resolve to the selected question. Decide the question before starting animation; visual motion must never change the recorded result unexpectedly.
 - Limit motion to a short, predictable duration (for example, 1.5–2.5 seconds). With `prefers-reduced-motion: reduce`, skip or greatly shorten the animation while retaining the same result.
-- Use a distinct five-step attendance palette. Example light-theme tokens: empty `#E8EDF2`, one `#C9E8DE`, 2–4 `#81CDB4`, 5–9 `#318C70`, 10+ `#155B47`. Outline the current day. Show exact counts in text, so color is never the only source of meaning.
+- Use the grayscale palette for attendance: empty `#FFFFFF`, one `#D4D4D4`, 2–4 `#B3B3B3`, and 5–9/10+ `#2B2B2B`. The exact count remains visible in text, so color is never the only source of meaning. Outline the current day.
 - The cell tooltip should be available by mouse hover and keyboard focus; on touch, tapping a cell should reveal the date and count.
 
 ## 3. UI state model
@@ -139,10 +139,10 @@ For daily dates, format local year/month/day components directly. Avoid `new Dat
 | Count | Level | Visual |
 | ---: | ---: | --- |
 | 0 | 0 | Neutral empty cell |
-| 1 | 1 | Light green |
-| 2–4 | 2 | Medium green |
-| 5–9 | 3 | Strong green |
-| 10+ | 4 | Darkest green |
+| 1 | 1 | `#D4D4D4` |
+| 2–4 | 2 | `#B3B3B3` |
+| 5–9 | 3 | `#2B2B2B` |
+| 10+ | 4 | `#2B2B2B` with the exact count in text |
 
 - Tooltip/accessible label example: “September 26, 2026: 3 questions answered.” Show zero explicitly. Use appropriate singular grammar for one question.
 - The grid should update immediately after a successful completion and roll to a new local day without a page reload if the app remains open past midnight.
