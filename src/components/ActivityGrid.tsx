@@ -43,14 +43,15 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
     : describeDay(selectedDate, activityByDate[selectedDate] ?? 0)
 
   useEffect(() => {
-    const nextLocalDay = new Date(today)
+    const currentTime = new Date()
+    const nextLocalDay = new Date(currentTime)
     nextLocalDay.setHours(24, 0, 0, 0)
     const timeout = window.setTimeout(() => {
       const nextToday = new Date()
       const previousTodayKey = formatLocalDate(today)
       const nextTodayKey = formatLocalDate(nextToday)
       const nextVisibleDates = new Set(
-        buildActivityCalendar(activityByDate, nextToday).weeks
+        buildActivityCalendar({}, nextToday).weeks
           .flat()
           .map((day) => day.date),
       )
@@ -62,10 +63,10 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
         date === previousTodayKey || !nextVisibleDates.has(date) ? nextTodayKey : date,
       )
       setToday(nextToday)
-    }, nextLocalDay.getTime() - today.getTime())
+    }, nextLocalDay.getTime() - currentTime.getTime())
 
     return () => window.clearTimeout(timeout)
-  }, [activityByDate, today])
+  }, [today])
 
   useEffect(() => {
     const scrollArea = scrollRef.current

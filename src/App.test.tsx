@@ -206,6 +206,63 @@ describe('timed practice round', () => {
     })
   })
 
+  it('preserves a pending completion when a later timer-setting save succeeds', () => {
+    vi.setSystemTime(new Date(2026, 8, 27, 12, 0, 0))
+    renderApp()
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('Full', 'QuotaExceededError')
+    })
+    click(findButton(container, 'Mark answered'))
+
+    const durationInput = container.querySelector<HTMLInputElement>('#answer-duration')
+    act(() => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set
+      valueSetter?.call(durationInput, '120')
+      durationInput?.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    expect(container.textContent).toContain('Answer saved')
+    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 120,
+      activityByDate: { '2026-09-27': 1 },
+    })
+  })
+
+  it('accumulates another completion while an earlier one is pending', () => {
+    vi.setSystemTime(new Date(2026, 8, 27, 12, 0, 0))
+    renderApp()
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new DOMException('Full', 'QuotaExceededError')
+    })
+
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+    click(findButton(container, 'Mark answered'))
+
+    click(findButton(container, 'Spin question'))
+    act(() => vi.advanceTimersByTime(1_800))
+    click(findButton(container, 'Start answer timer'))
+    click(findButton(container, 'Mark answered'))
+
+    expect(setItem).toHaveBeenCalledTimes(2)
+    expect(container.textContent).toContain('2 answers in the last 52 weeks')
+    expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
+      version: 1,
+      timerSeconds: 60,
+      activityByDate: { '2026-09-27': 2 },
+    })
+  })
+
   it('does not overwrite malformed saved data until recovery is explicit', () => {
     const malformedData = '{"version":2,"timerSeconds":90}'
     window.localStorage.setItem('interview-spin:v1', malformedData)

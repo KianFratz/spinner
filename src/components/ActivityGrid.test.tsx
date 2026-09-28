@@ -202,4 +202,23 @@ describe('activity grid', () => {
       'September 28, 2026: 0 questions answered.',
     )
   })
+
+  it('keeps the midnight deadline when activity refreshes late in the day', () => {
+    act(() => {
+      root.render(<ActivityGrid activityByDate={{}} />)
+    })
+
+    act(() => {
+      vi.advanceTimersByTime(11 * 60 * 60 * 1_000)
+      root.render(<ActivityGrid activityByDate={{ '2026-09-30': 1 }} />)
+    })
+
+    act(() => {
+      vi.advanceTimersByTime(60 * 60 * 1_000)
+    })
+
+    expect(
+      container.querySelector('[data-today][aria-label^="October 1, 2026"]'),
+    ).not.toBeNull()
+  })
 })

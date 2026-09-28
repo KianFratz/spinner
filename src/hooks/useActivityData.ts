@@ -32,17 +32,23 @@ export function useActivityData() {
   }
 
   function setTimerSeconds(timerSeconds: number) {
-    const nextData = { ...data, timerSeconds }
-    setData(nextData)
-    return persist(nextData)
+    const nextData = { ...(pendingDataRef.current ?? data), timerSeconds }
+    const saved = persist(nextData)
+
+    if (saved) {
+      setData(nextData)
+    }
+
+    return saved
   }
 
   function recordCompletion(localDate: string) {
+    const currentData = pendingDataRef.current ?? data
     const nextData = {
-      ...data,
+      ...currentData,
       activityByDate: {
-        ...data.activityByDate,
-        [localDate]: (data.activityByDate[localDate] ?? 0) + 1,
+        ...currentData.activityByDate,
+        [localDate]: (currentData.activityByDate[localDate] ?? 0) + 1,
       },
     }
 
