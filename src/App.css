@@ -84,14 +84,21 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 30px;
+  justify-content: flex-start;
+  padding: 30px 30px 32px;
   background: var(--panel-muted);
+}
+
+.spinner-controls {
+  width: min(100%, 360px);
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line-strong);
 }
 
 .filter-block {
   align-self: stretch;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .control-label {
@@ -149,7 +156,7 @@ button {
 
 .timer-setting {
   align-self: stretch;
-  margin-bottom: 32px;
+  margin-bottom: 0;
 }
 
 .duration-input {
@@ -200,92 +207,74 @@ button {
   width: 100%;
 }
 
-.spinner-wheel {
+.spinner-reel {
   position: relative;
-  width: min(252px, 70vw);
-  aspect-ratio: 1;
-  border: 1px solid #B3B3B3;
-  border-radius: 50%;
-  background: #FFFFFF;
-  transform: rotate(-7deg);
+  width: min(300px, 78vw);
+  height: 246px;
+  background: transparent;
+  overflow: hidden;
 }
 
-.spinner-wheel.is-spinning {
-  animation: wheel-spin var(--spin-duration) cubic-bezier(0.2, 0.82, 0.24, 1) both;
-}
-
-.spinner-wheel__glow {
+.spinner-reel__viewport {
   position: absolute;
-  inset: 13px;
-  border: 1px dashed #D4D4D4;
-  border-radius: 50%;
+  inset: 18px 24px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 17%,
+    #000 83%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 17%,
+    #000 83%,
+    transparent 100%
+  );
 }
 
-.spinner-wheel__labels span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 78px;
+.spinner-reel__labels {
+  display: flex;
+  flex-direction: column;
+  padding-top: 33px;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, filter;
+}
+
+.spinner-reel.is-spinning .spinner-reel__labels {
+  animation: slot-reel-spin var(--spin-duration) cubic-bezier(0.16, 0.84, 0.24, 1) both;
+}
+
+.spinner-reel__labels span {
+  display: grid;
+  flex: 0 0 48px;
+  place-items: center;
   color: #2B2B2B;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
   text-align: center;
   text-transform: uppercase;
-  transform: translate(-50%, -50%) rotate(var(--label-angle)) translateY(-88px) rotate(calc(var(--label-angle) * -1));
+  transition: color 240ms ease, filter 180ms ease, opacity 240ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.spinner-wheel__labels span:nth-child(1) {
-  --label-angle: 0deg;
+.spinner-reel.is-spinning .spinner-reel__labels span {
+  filter: blur(0.7px);
 }
 
-.spinner-wheel__labels span:nth-child(2) {
-  --label-angle: 60deg;
+.spinner-reel.is-settled .spinner-reel__labels span:not(.is-selected) {
+  opacity: 0.36;
 }
 
-.spinner-wheel__labels span:nth-child(3) {
-  --label-angle: 120deg;
-}
-
-.spinner-wheel__labels span:nth-child(4) {
-  --label-angle: 180deg;
-}
-
-.spinner-wheel__labels span:nth-child(5) {
-  --label-angle: 240deg;
-}
-
-.spinner-wheel__labels span:nth-child(6) {
-  --label-angle: 300deg;
-}
-
-.spinner-wheel__hub {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  display: grid;
-  place-items: center;
-  width: 83px;
-  height: 83px;
-  border: 7px solid #D4D4D4;
-  border-radius: 50%;
+.spinner-reel.is-settled .spinner-reel__labels span.is-selected {
   color: var(--ink);
-  background: var(--surface);
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  transform: translate(-50%, -50%);
-}
-
-.spinner-wheel__pointer {
-  position: absolute;
-  top: -13px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-right: 11px solid transparent;
-  border-bottom: 22px solid var(--accent);
-  border-left: 11px solid transparent;
-  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0;
+  transform: scale(1.04);
 }
 
 .spin-button {
@@ -781,21 +770,22 @@ button {
   border: 0;
 }
 
-@keyframes wheel-spin {
+@keyframes slot-reel-spin {
   0% {
-    transform: rotate(-7deg);
+    transform: translate3d(0, 0, 0);
   }
 
-  22% {
-    transform: rotate(112deg);
+  18% {
+    filter: blur(0.5px);
   }
 
-  58% {
-    transform: rotate(808deg);
+  68% {
+    filter: blur(3px);
   }
 
   100% {
-    transform: rotate(1253deg);
+    transform: translate3d(0, -288px, 0);
+    filter: blur(0);
   }
 }
 
@@ -837,6 +827,11 @@ button {
 
   .spinner-panel {
     padding: 24px 18px 30px;
+  }
+
+  .spinner-controls {
+    margin-top: 20px;
+    padding-top: 20px;
   }
 
   .question-card {

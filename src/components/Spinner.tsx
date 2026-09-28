@@ -3,13 +3,19 @@ import { ArrowUpRight } from 'lucide-react'
 
 type SpinnerProps = {
   isSpinning: boolean
+  selectedLabel: string | null
   onSpin: () => void
   animationDurationMs: number
 }
 
 const wheelLabels = ['React', 'APIs', 'Testing', 'Behavioral', 'SQL', 'System design']
 
-function Spinner({ isSpinning, onSpin, animationDurationMs }: SpinnerProps) {
+function Spinner({ isSpinning, selectedLabel, onSpin, animationDurationMs }: SpinnerProps) {
+  const otherLabels = wheelLabels.filter((label) => label !== selectedLabel)
+  const reelLabels = selectedLabel
+    ? [otherLabels[0] ?? selectedLabel, selectedLabel, ...otherLabels.slice(1, 5)]
+    : wheelLabels
+  const hasSettledSelection = Boolean(selectedLabel && !isSpinning)
   const wheelStyle = {
     '--spin-duration': `${animationDurationMs}ms`,
   } as CSSProperties
@@ -17,20 +23,26 @@ function Spinner({ isSpinning, onSpin, animationDurationMs }: SpinnerProps) {
   return (
     <div className="spinner-stage">
       <div
-        className={`spinner-wheel${isSpinning ? ' is-spinning' : ''}`}
+        className={`spinner-reel${isSpinning ? ' is-spinning' : ''}${hasSettledSelection ? ' is-settled' : ''}`}
         style={wheelStyle}
         aria-hidden="true"
       >
-        <div className="spinner-wheel__glow" />
-        <div className="spinner-wheel__labels">
-          {wheelLabels.map((label) => (
-            <span key={label}>{label}</span>
-          ))}
+        <div className="spinner-reel__viewport">
+          <div className="spinner-reel__labels">
+            {[...reelLabels, ...reelLabels].map((label, index) => (
+              <span
+                className={
+                  hasSettledSelection && index % reelLabels.length === 1
+                    ? 'is-selected'
+                    : undefined
+                }
+                key={`${label}-${index}`}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="spinner-wheel__hub">
-          <span>{isSpinning ? '…' : 'SPIN'}</span>
-        </div>
-        <span className="spinner-wheel__pointer" />
       </div>
       <button
         className="spin-button"

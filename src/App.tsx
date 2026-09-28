@@ -272,60 +272,63 @@ function App() {
 
           <div className="practice-layout">
             <div className="spinner-panel">
-              <div className="filter-block">
-                <span className="control-label" id="category-label">
-                  Question category
-                </span>
-                <div className="filter-list" role="group" aria-labelledby="category-label">
-                  {filterOptions.map((option) => (
-                    <button
-                      className="filter-button"
-                      key={option.value}
-                      type="button"
-                      aria-pressed={activeFilter === option.value}
-                      disabled={isSpinning || durationLocked}
-                      onClick={() => handleFilterChange(option.value)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="timer-setting">
-                <label className="control-label" htmlFor="answer-duration">
-                  Answer time
-                </label>
-                <div className="duration-input">
-                  <input
-                    id="answer-duration"
-                    type="number"
-                    min={MIN_DURATION_SECONDS}
-                    max={MAX_DURATION_SECONDS}
-                    step="1"
-                    value={durationInput}
-                    disabled={durationLocked}
-                    onChange={handleDurationChange}
-                    onBlur={handleDurationBlur}
-                    aria-describedby="answer-duration-help"
-                  />
-                  <span>seconds</span>
-                </div>
-                <p className="timer-setting-help" id="answer-duration-help">
-                  Choose 30–600 seconds before you start.
-                </p>
-              </div>
-
               <Spinner
                 isSpinning={isSpinning}
+                selectedLabel={selectedQuestion?.topic ?? null}
                 onSpin={handleSpin}
                 animationDurationMs={spinDurationMs}
               />
               <p className="spinner-caption" aria-live="polite">
                 {isSpinning
                   ? 'Finding a prompt in your selected category…'
-                  : 'The wheel will settle on one prompt.'}
+                  : 'The reel will settle on one prompt.'}
               </p>
+
+              <div className="spinner-controls">
+                <div className="filter-block">
+                  <span className="control-label" id="category-label">
+                    Question category
+                  </span>
+                  <div className="filter-list" role="group" aria-labelledby="category-label">
+                    {filterOptions.map((option) => (
+                      <button
+                        className="filter-button"
+                        key={option.value}
+                        type="button"
+                        aria-pressed={activeFilter === option.value}
+                        disabled={isSpinning || durationLocked}
+                        onClick={() => handleFilterChange(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="timer-setting">
+                  <label className="control-label" htmlFor="answer-duration">
+                    Answer time
+                  </label>
+                  <div className="duration-input">
+                    <input
+                      id="answer-duration"
+                      type="number"
+                      min={MIN_DURATION_SECONDS}
+                      max={MAX_DURATION_SECONDS}
+                      step="1"
+                      value={durationInput}
+                      disabled={durationLocked}
+                      onChange={handleDurationChange}
+                      onBlur={handleDurationBlur}
+                      aria-describedby="answer-duration-help"
+                    />
+                    <span>seconds</span>
+                  </div>
+                  <p className="timer-setting-help" id="answer-duration-help">
+                    Choose 30–600 seconds before you start.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <article className="question-card">
