@@ -86,6 +86,7 @@ function App() {
   const completionGuardRef = useRef(false)
   const [activeFilter, setActiveFilter] = useState<QuestionFilter>('all')
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null)
+  const [spinningLabel, setSpinningLabel] = useState<string | null>(null)
   const [isSpinning, setIsSpinning] = useState(false)
   const [completionStatus, setCompletionStatus] = useState<'idle' | 'saved' | 'failed'>('idle')
   const [durationInput, setDurationInput] = useState(
@@ -131,6 +132,7 @@ function App() {
     pickerRef.current.setFilter(filter)
     setActiveFilter(filter)
     setSelectedQuestion(null)
+    setSpinningLabel(null)
     abandonRound()
     setAnnouncement(`${filter === 'all' ? 'All' : categoryLabel(filter)} questions ready.`)
   }
@@ -158,6 +160,7 @@ function App() {
     abandonRound()
     spinningRef.current = true
     setSelectedQuestion(null)
+    setSpinningLabel(nextQuestion.topic)
     setIsSpinning(true)
     setAnnouncement('Selecting a question.')
 
@@ -165,6 +168,7 @@ function App() {
       spinningRef.current = false
       spinTimeoutRef.current = null
       setSelectedQuestion(nextQuestion)
+      setSpinningLabel(null)
       answerTimer.select()
       setIsSpinning(false)
       setAnnouncement(
@@ -274,7 +278,7 @@ function App() {
             <div className="spinner-panel">
               <Spinner
                 isSpinning={isSpinning}
-                selectedLabel={selectedQuestion?.topic ?? null}
+                selectedLabel={spinningLabel ?? selectedQuestion?.topic ?? null}
                 onSpin={handleSpin}
                 animationDurationMs={spinDurationMs}
               />

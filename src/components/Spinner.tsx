@@ -1,5 +1,13 @@
 import type { CSSProperties } from 'react'
 import { ArrowUpRight } from 'lucide-react'
+import {
+  buildSettledReel,
+  buildSpinningReel,
+  getReelStopOffset,
+  REEL_CENTER_INDEX,
+  REEL_ITEM_HEIGHT,
+  WHEEL_LABELS,
+} from '../lib/spinnerReel'
 
 type SpinnerProps = {
   isSpinning: boolean
@@ -8,16 +16,17 @@ type SpinnerProps = {
   animationDurationMs: number
 }
 
-const wheelLabels = ['React', 'APIs', 'Testing', 'Behavioral', 'SQL', 'System design']
-
 function Spinner({ isSpinning, selectedLabel, onSpin, animationDurationMs }: SpinnerProps) {
-  const otherLabels = wheelLabels.filter((label) => label !== selectedLabel)
-  const reelLabels = selectedLabel
-    ? [otherLabels[0] ?? selectedLabel, selectedLabel, ...otherLabels.slice(1, 5)]
-    : wheelLabels
+  const reelLabels = isSpinning
+    ? buildSpinningReel(selectedLabel)
+    : selectedLabel
+      ? buildSettledReel(selectedLabel)
+      : [...WHEEL_LABELS]
   const hasSettledSelection = Boolean(selectedLabel && !isSpinning)
   const wheelStyle = {
     '--spin-duration': `${animationDurationMs}ms`,
+    '--reel-stop-offset': `${getReelStopOffset(selectedLabel)}px`,
+    '--reel-item-height': `${REEL_ITEM_HEIGHT}px`,
   } as CSSProperties
 
   return (
@@ -29,10 +38,10 @@ function Spinner({ isSpinning, selectedLabel, onSpin, animationDurationMs }: Spi
       >
         <div className="spinner-reel__viewport">
           <div className="spinner-reel__labels">
-            {[...reelLabels, ...reelLabels].map((label, index) => (
+            {reelLabels.map((label, index) => (
               <span
                 className={
-                  hasSettledSelection && index % reelLabels.length === 1
+                  hasSettledSelection && index === REEL_CENTER_INDEX
                     ? 'is-selected'
                     : undefined
                 }

@@ -249,7 +249,7 @@ button {
 
 .spinner-reel__labels span {
   display: grid;
-  flex: 0 0 48px;
+  flex: 0 0 var(--reel-item-height, 48px);
   place-items: center;
   color: #2B2B2B;
   font-size: 15px;
@@ -784,7 +784,7 @@ button {
   }
 
   100% {
-    transform: translate3d(0, -288px, 0);
+    transform: translate3d(0, var(--reel-stop-offset), 0);
     filter: blur(0);
   }
 }
