@@ -275,160 +275,177 @@ function App() {
           ) : null}
 
           <div className="practice-layout">
-            <div className="spinner-panel">
-              <Spinner
-                isSpinning={isSpinning}
-                selectedLabel={spinningLabel ?? selectedQuestion?.topic ?? null}
-                onSpin={handleSpin}
-                animationDurationMs={spinDurationMs}
-              />
-              <p className="spinner-caption" aria-live="polite">
-                {isSpinning
-                  ? 'Finding a prompt in your selected category…'
-                  : 'The reel will settle on one prompt.'}
-              </p>
+            <section className="practice-card" aria-label="Interview question practice">
+              <div className="practice-card__spinner">
+                <Spinner
+                  isSpinning={isSpinning}
+                  selectedLabel={spinningLabel ?? selectedQuestion?.topic ?? null}
+                  onSpin={handleSpin}
+                  animationDurationMs={spinDurationMs}
+                />
+                <p className="spinner-caption" aria-live="polite">
+                  {isSpinning
+                    ? 'Finding a prompt in your selected category…'
+                    : 'The reel will settle on one prompt.'}
+                </p>
 
-              <div className="spinner-controls">
-                <div className="filter-block">
-                  <span className="control-label" id="category-label">
-                    Question category
-                  </span>
-                  <div className="filter-list" role="group" aria-labelledby="category-label">
-                    {filterOptions.map((option) => (
-                      <button
-                        className="filter-button"
-                        key={option.value}
-                        type="button"
-                        aria-pressed={activeFilter === option.value}
-                        disabled={isSpinning || durationLocked}
-                        onClick={() => handleFilterChange(option.value)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="timer-setting">
-                  <label className="control-label" htmlFor="answer-duration">
-                    Answer time
-                  </label>
-                  <div className="duration-input">
-                    <input
-                      id="answer-duration"
-                      type="number"
-                      min={MIN_DURATION_SECONDS}
-                      max={MAX_DURATION_SECONDS}
-                      step="1"
-                      value={durationInput}
-                      disabled={durationLocked}
-                      onChange={handleDurationChange}
-                      onBlur={handleDurationBlur}
-                      aria-describedby="answer-duration-help"
-                    />
-                    <span>seconds</span>
-                  </div>
-                  <p className="timer-setting-help" id="answer-duration-help">
-                    Choose 30–600 seconds before you start.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <article className="question-card">
-              <div className="question-card-header">
-                <span className="meta-label">Selected question</span>
-                {selectedQuestion ? (
-                  <span className="question-index" data-phase={answerTimer.timer.phase}>
-                    {currentTimerPresentation.questionStatus}
-                  </span>
-                ) : null}
-              </div>
-
-              {selectedQuestion ? (
-                <div className="question-content">
-                  <div className="question-meta">
-                    <span className="category-pill">{categoryLabel(selectedQuestion.category)}</span>
-                    <span className="topic-label">{selectedQuestion.topic}</span>
-                  </div>
-                  <p className="question-prompt">{selectedQuestion.prompt}</p>
-                  <p className="question-footer">Take a moment to outline your answer before you speak.</p>
-                  <div
-                    className="answer-timer-card"
-                    data-phase={answerTimer.timer.phase}
-                    aria-labelledby="answer-timer-heading"
-                  >
-                    <div className="answer-timer-card__header">
-                      <span className="meta-label" id="answer-timer-heading">
-                        Answer timer
-                      </span>
-                      <span className="answer-timer-card__duration">
-                        {durationDescription(answerTimer.timer.durationSeconds)}
-                      </span>
-                    </div>
-                    <div className="answer-timer-card__body">
-                      <div
-                        className="timer-display"
-                        role="timer"
-                        aria-label={
-                          answerTimer.timer.phase === 'expired'
-                            ? 'Time’s up'
-                            : `${formatRemainingTime(answerTimer.timer.remainingMs)} remaining`
-                        }
-                      >
-                        {formatRemainingTime(answerTimer.timer.remainingMs)}
-                      </div>
-                      <p className="timer-status">{currentTimerPresentation.statusMessage}</p>
-                    </div>
-                    <div className="timer-actions">
-                      {answerTimer.timer.phase === 'selected' ? (
-                        <button className="timer-primary-button" type="button" onClick={handleStartTimer}>
-                          Start answer timer
-                        </button>
-                      ) : null}
-                      {answerTimer.timer.phase === 'running' || answerTimer.timer.phase === 'paused' ? (
-                        <button className="timer-secondary-button" type="button" onClick={handlePauseResume}>
-                          {answerTimer.timer.phase === 'running' ? 'Pause' : 'Resume'}
-                        </button>
-                      ) : null}
-                      {durationLocked ? (
-                        <button className="timer-reset-button" type="button" onClick={handleResetTimer}>
-                          Reset
-                        </button>
-                      ) : null}
-                      {answerCanBeCompleted || completionStatus !== 'idle' ? (
+                <div className="spinner-controls">
+                  <div className="filter-block">
+                    <span className="control-label" id="category-label">
+                      Question category
+                    </span>
+                    <div className="filter-list" role="group" aria-labelledby="category-label">
+                      {filterOptions.map((option) => (
                         <button
-                          className="timer-primary-button"
+                          className="filter-button"
+                          key={option.value}
                           type="button"
-                          disabled={completionStatus !== 'idle'}
-                          onClick={handleMarkAnswered}
+                          aria-pressed={activeFilter === option.value}
+                          disabled={isSpinning || durationLocked}
+                          onClick={() => handleFilterChange(option.value)}
                         >
-                          {completionStatus === 'idle' ? 'Mark answered' : 'Answered'}
+                          {option.label}
                         </button>
-                      ) : null}
+                      ))}
                     </div>
-                    {completionStatus === 'saved' ? (
-                      <p className="completion-message" role="status">
-                        Answer saved
-                      </p>
-                    ) : null}
-                    {completionStatus === 'failed' ? (
-                      <p className="completion-message completion-message--error" role="status">
-                        Answer completed, but it was not saved
-                      </p>
-                    ) : null}
+                  </div>
+
+                  <div className="timer-setting">
+                    <label className="control-label" htmlFor="answer-duration">
+                      Answer time
+                    </label>
+                    <div className="duration-input">
+                      <input
+                        id="answer-duration"
+                        type="number"
+                        min={MIN_DURATION_SECONDS}
+                        max={MAX_DURATION_SECONDS}
+                        step="1"
+                        value={durationInput}
+                        disabled={durationLocked}
+                        onChange={handleDurationChange}
+                        onBlur={handleDurationBlur}
+                        aria-describedby="answer-duration-help"
+                      />
+                      <span>seconds</span>
+                    </div>
+                    <p className="timer-setting-help" id="answer-duration-help">
+                      Choose 30–600 seconds before you start.
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <div className="question-placeholder">
-                  <span className="placeholder-dot" aria-hidden="true">
-                    <CircleHelp size={25} strokeWidth={1.8} />
-                  </span>
-                  <p>Your selected prompt will land here.</p>
-                  <span>Use the category filter to shape the next spin.</span>
+              </div>
+
+              <article className="practice-card__question">
+                <div className="question-card-header">
+                  <span className="meta-label">Selected question</span>
+                  {selectedQuestion ? (
+                    <span className="question-index" data-phase={answerTimer.timer.phase}>
+                      {currentTimerPresentation.questionStatus}
+                    </span>
+                  ) : null}
                 </div>
-              )}
-            </article>
+
+                {selectedQuestion ? (
+                  <div className="question-content">
+                    <div className="question-meta">
+                      <span className="category-pill">{categoryLabel(selectedQuestion.category)}</span>
+                      <span className="topic-label">{selectedQuestion.topic}</span>
+                    </div>
+                    <p className="question-prompt">{selectedQuestion.prompt}</p>
+                    <p className="question-footer">Take a moment to outline your answer before you speak.</p>
+                    <div
+                      className="answer-timer-card"
+                      data-phase={answerTimer.timer.phase}
+                      aria-labelledby="answer-timer-heading"
+                    >
+                      <div className="answer-timer-card__header">
+                        <span className="meta-label" id="answer-timer-heading">
+                          Answer timer
+                        </span>
+                        <span className="answer-timer-card__duration">
+                          {durationDescription(answerTimer.timer.durationSeconds)}
+                        </span>
+                      </div>
+
+                      <div className="answer-timer-card__body">
+                        <div
+                          className="timer-display"
+                          role="timer"
+                          aria-label={
+                            answerTimer.timer.phase === 'expired'
+                              ? 'Time’s up'
+                              : `${formatRemainingTime(answerTimer.timer.remainingMs)} remaining`
+                          }
+                        >
+                          {formatRemainingTime(answerTimer.timer.remainingMs)}
+                        </div>
+                        <p className="timer-status">{currentTimerPresentation.statusMessage}</p>
+                      </div>
+
+                      <div className="timer-actions">
+                        {answerTimer.timer.phase === 'selected' ? (
+                          <button
+                            className="timer-primary-button"
+                            type="button"
+                            onClick={handleStartTimer}
+                          >
+                            Start answer timer
+                          </button>
+                        ) : null}
+                        {answerTimer.timer.phase === 'running' || answerTimer.timer.phase === 'paused' ? (
+                          <button
+                            className="timer-secondary-button"
+                            type="button"
+                            onClick={handlePauseResume}
+                          >
+                            {answerTimer.timer.phase === 'running' ? 'Pause' : 'Resume'}
+                          </button>
+                        ) : null}
+                        {durationLocked ? (
+                          <button
+                            className="timer-reset-button"
+                            type="button"
+                            onClick={handleResetTimer}
+                          >
+                            Reset
+                          </button>
+                        ) : null}
+                        {answerCanBeCompleted || completionStatus !== 'idle' ? (
+                          <button
+                            className="timer-primary-button"
+                            type="button"
+                            disabled={completionStatus !== 'idle'}
+                            onClick={handleMarkAnswered}
+                          >
+                            {completionStatus === 'idle' ? 'Mark answered' : 'Answered'}
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {completionStatus === 'saved' ? (
+                        <p className="completion-message" role="status">
+                          Answer saved
+                        </p>
+                      ) : null}
+                      {completionStatus === 'failed' ? (
+                        <p className="completion-message completion-message--error" role="status">
+                          Answer completed, but it was not saved
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="question-placeholder">
+                    <span className="placeholder-dot" aria-hidden="true">
+                      <CircleHelp size={25} strokeWidth={1.8} />
+                    </span>
+                    <p>Your selected prompt will land here.</p>
+                    <span>Use the category filter to shape the next spin.</span>
+                  </div>
+                )}
+              </article>
+            </section>
           </div>
 
           <p className="sr-only" aria-live="polite">

@@ -32,9 +32,9 @@ main {
 
 .practice-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 0.76fr) minmax(0, 1.24fr);
-  gap: 18px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
 .practice-layout > * {
@@ -73,19 +73,23 @@ main {
   font-weight: 800;
 }
 
-.spinner-panel,
-.question-card {
-  min-height: 500px;
+.practice-card {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  align-items: stretch;
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 18px;
+  background: var(--surface);
 }
 
-.spinner-panel {
+.practice-card__spinner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 30px 30px 32px;
+  padding: 34px clamp(20px, 4vw, 44px) 36px;
+  border-right: 1px solid var(--line);
   background: var(--panel-muted);
 }
 
@@ -330,11 +334,12 @@ button {
   text-align: center;
 }
 
-.question-card {
+.practice-card__question {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(25px, 5vw, 54px);
+  min-height: 540px;
+  padding: clamp(28px, 5vw, 56px);
   background: var(--surface);
 }
 
@@ -369,8 +374,8 @@ button {
 }
 
 .question-content {
-  margin: auto 0;
-  padding: 54px 0;
+  margin: 0;
+  padding: 48px 0 0;
 }
 
 .question-meta {
@@ -697,7 +702,7 @@ button {
 .question-placeholder {
   align-self: center;
   max-width: 280px;
-  margin: auto 0;
+  margin: auto;
   color: var(--muted);
   text-align: center;
 }
@@ -780,23 +785,16 @@ button {
     padding: 48px 0 32px;
   }
 
-  .practice-layout {
-    grid-template-columns: 1fr;
-  }
-
   .storage-notice {
     align-items: flex-start;
     flex-direction: column;
     margin-top: -8px;
   }
 
-  .spinner-panel,
-  .question-card {
-    min-height: 0;
-  }
-
-  .spinner-panel {
+  .practice-card__spinner {
     padding: 24px 18px 30px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .spinner-controls {
@@ -804,12 +802,12 @@ button {
     padding-top: 20px;
   }
 
-  .question-card {
+  .practice-card__question {
     min-height: 390px;
   }
 
   .question-content {
-    padding: 42px 0;
+    padding: 42px 0 0;
   }
 
   .filter-button,
