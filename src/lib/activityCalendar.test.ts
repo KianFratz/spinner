@@ -17,6 +17,14 @@ describe('activity calendar', () => {
       ['2026-10-03', true],
       ['2026-10-04', true],
     ])
+    expect(calendar.months).toHaveLength(12)
+    expect(calendar.months[0]).toMatchObject({
+      monthStart: '2025-10-01',
+      weekIndex: 0,
+    })
+    expect(calendar.months[11]).toMatchObject({
+      monthStart: '2026-09-01',
+    })
   })
 
   it('totals only visible dates without discarding older activity', () => {

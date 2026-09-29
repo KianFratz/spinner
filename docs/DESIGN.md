@@ -42,8 +42,11 @@ Practice one software engineering question at a time.
             [ Pause / Resume ] [ Reset ]
                     [ Mark answered ]
 
-Activity · 34 answers in the last 52 weeks
-Mon Tue Wed Thu Fri Sat Sun ... calendar cells, grouped by weeks
+Activity · 34 answers in the last year
+          Oct Nov Dec ... Sep
+Mon       ... calendar cells, grouped by weeks
+Wed
+Fri
 Less  [0] [1] [2–4] [5–9] [10+]  More
 ```
 
@@ -132,8 +135,8 @@ For daily dates, format local year/month/day components directly. Avoid `new Dat
 
 ## 7. Calendar calculation
 
-- Generate a trailing 52-week interval ending at the current local week. For each rendered local date, read `activityByDate[date] ?? 0`; retain older stored entries for future features and backups.
-- Align week columns consistently and label weekday rows. Hide or mark future dates in the current week as unavailable.
+- Generate a trailing 52-week interval ending at the current local week, with compact month labels covering the latest 12 months. For each rendered local date, read `activityByDate[date] ?? 0`; retain older stored entries for future features and backups.
+- Align week columns consistently, show only Mon/Wed/Fri weekday labels, and retain all seven day rows. Hide or mark future dates in the current week as unavailable.
 - Map counts to tokens:
 
 | Count | Level | Visual |

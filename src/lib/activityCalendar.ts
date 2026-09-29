@@ -2,6 +2,8 @@ import { formatLocalDate } from './localDate'
 
 const DAYS_PER_WEEK = 7
 const VISIBLE_WEEK_COUNT = 52
+const VISIBLE_MONTH_COUNT = 12
+const monthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short' })
 
 export type ActivityLevel = 0 | 1 | 2 | 3 | 4
 
@@ -19,9 +21,16 @@ export interface ActivityCalendarDay {
   isFuture: boolean
 }
 
+export interface ActivityCalendarMonth {
+  label: string
+  monthStart: string
+  weekIndex: number
+}
+
 export interface ActivityCalendar {
   totalAnswered: number
   weeks: ActivityCalendarDay[][]
+  months: ActivityCalendarMonth[]
 }
 
 function addLocalDays(date: Date, days: number) {
@@ -44,7 +53,7 @@ export function buildActivityCalendar(
 ): ActivityCalendar {
   const today = new Date(now)
   today.setHours(0, 0, 0, 0)
-  const firstVisibleDate = addLocalDays(
+  const firstVisibleCalendarDate = addLocalDays(
     startOfLocalWeek(today),
     -(VISIBLE_WEEK_COUNT - 1) * DAYS_PER_WEEK,
   )
@@ -52,7 +61,7 @@ export function buildActivityCalendar(
   const weeks = Array.from({ length: VISIBLE_WEEK_COUNT }, (_, weekIndex) =>
     Array.from({ length: DAYS_PER_WEEK }, (_, weekdayIndex) => {
       const date = addLocalDays(
-        firstVisibleDate,
+        firstVisibleCalendarDate,
         weekIndex * DAYS_PER_WEEK + weekdayIndex,
       )
       const dateKey = formatLocalDate(date)
@@ -68,6 +77,23 @@ export function buildActivityCalendar(
   const totalAnswered = weeks
     .flat()
     .reduce((total, day) => total + day.count, 0)
+  const months = Array.from({ length: VISIBLE_MONTH_COUNT }, (_, index) => {
+    const monthStart = new Date(
+      today.getFullYear(),
+      today.getMonth() - (VISIBLE_MONTH_COUNT - 1 - index),
+      1,
+    )
+    const monthStartKey = formatLocalDate(monthStart)
+    const exactWeekIndex = weeks.findIndex((week) =>
+      week.some((day) => day.date === monthStartKey),
+    )
 
-  return { totalAnswered, weeks }
+    return {
+      label: monthFormatter.format(monthStart),
+      monthStart: monthStartKey,
+      weekIndex: Math.max(exactWeekIndex, 0),
+    }
+  })
+
+  return { totalAnswered, weeks, months }
 }

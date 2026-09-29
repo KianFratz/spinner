@@ -536,8 +536,8 @@ button {
 }
 
 .activity-panel {
-  margin-bottom: 90px;
-  padding: clamp(24px, 4vw, 42px);
+  margin-bottom: 72px;
+  padding: clamp(18px, 3vw, 28px);
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
@@ -548,13 +548,13 @@ button {
   align-items: end;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .activity-panel__header h2 {
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   color: var(--ink);
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(24px, 3vw, 32px);
   font-weight: 580;
   letter-spacing: -0.035em;
   line-height: 1;
@@ -583,7 +583,7 @@ button {
 
 .activity-scroll {
   width: 100%;
-  padding: 5px 2px 14px;
+  padding: 3px 2px 10px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-color: var(--accent) var(--panel-muted);
@@ -597,7 +597,7 @@ button {
 }
 
 .activity-scroll::-webkit-scrollbar {
-  height: 10px;
+  height: 8px;
 }
 
 .activity-scroll::-webkit-scrollbar-track {
@@ -613,11 +613,20 @@ button {
 
 .activity-calendar {
   display: grid;
-  grid-template-columns: 34px repeat(52, 18px);
-  grid-template-rows: repeat(7, 18px);
-  gap: 4px;
+  grid-template-columns: 28px repeat(52, 14px);
+  grid-template-rows: 16px repeat(7, 14px);
+  gap: 3px;
   width: max-content;
   min-width: 100%;
+}
+
+.activity-month {
+  align-self: end;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .activity-weekday {
@@ -627,18 +636,18 @@ button {
   align-self: center;
   color: var(--muted);
   background: var(--surface);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 750;
   line-height: 1;
 }
 
 .activity-day {
-  width: 18px;
-  height: 18px;
-  min-height: 18px;
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
   padding: 0;
   border: 1px solid var(--activity-empty-border);
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--activity-empty);
   cursor: pointer;
 }
@@ -691,9 +700,9 @@ button {
 
 .activity-detail {
   min-height: 20px;
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.5;
 }
@@ -703,10 +712,10 @@ button {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 20px;
+  gap: 7px;
+  margin-top: 16px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -717,10 +726,10 @@ button {
 }
 
 .activity-legend__swatch {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border: 1px solid var(--activity-empty-border);
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--activity-empty);
 }
 
@@ -851,14 +860,14 @@ button {
 
   .activity-panel {
     margin-bottom: 62px;
-    padding: 24px 18px;
+    padding: 20px 16px;
   }
 
   .activity-panel__header {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
   }
 
   .activity-scroll-hint {
@@ -866,14 +875,14 @@ button {
   }
 
   .activity-calendar {
-    grid-template-columns: 34px repeat(52, 24px);
-    grid-template-rows: repeat(7, 24px);
+    grid-template-columns: 30px repeat(52, 18px);
+    grid-template-rows: 16px repeat(7, 18px);
   }
 
   .activity-day {
-    width: 24px;
-    height: 24px;
-    min-height: 24px;
+    width: 18px;
+    height: 18px;
+    min-height: 18px;
   }
 
   .activity-legend {

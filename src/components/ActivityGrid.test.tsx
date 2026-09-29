@@ -37,12 +37,15 @@ describe('activity grid', () => {
     })
 
     expect(container.querySelector('h2')?.textContent).toBe('Activity')
-    expect(container.textContent).toContain('4 answers in the last 52 weeks')
+    expect(container.textContent).toContain('4 answers in the last year')
     expect(
       [...container.querySelectorAll('[data-weekday-label]')].map(
         (label) => label.textContent,
       ),
-    ).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+    ).toEqual(['Mon', 'Wed', 'Fri'])
+    expect(container.querySelectorAll('[data-month-label]')).toHaveLength(12)
+    expect(container.querySelector('[data-month-start="2025-10-01"]')).not.toBeNull()
+    expect(container.querySelector('[data-month-start="2026-09-01"]')).not.toBeNull()
     expect(
       container.querySelector(
         'button[aria-label="September 30, 2026: 1 question answered."]',

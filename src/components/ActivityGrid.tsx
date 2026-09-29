@@ -6,6 +6,7 @@ import {
 import { formatLocalDate } from '../lib/localDate'
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const visibleWeekdayIndexes = new Set([0, 2, 4])
 const longDateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'long' })
 
 interface ActivityGridProps {
@@ -104,7 +105,7 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
           <h2 id="activity-heading">Activity</h2>
           <p>
             {calendar.totalAnswered}{' '}
-            {calendar.totalAnswered === 1 ? 'answer' : 'answers'} in the last 52 weeks
+            {calendar.totalAnswered === 1 ? 'answer' : 'answers'} in the last year
           </p>
         </div>
         <p className="activity-scroll-hint">
@@ -113,28 +114,42 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
       </div>
 
       <div
-        aria-label="52-week activity calendar; scroll horizontally to explore"
+        aria-label="Year activity calendar; scroll horizontally to explore"
         className="activity-scroll"
         ref={scrollRef}
         tabIndex={0}
       >
         <div className="activity-calendar" role="group" aria-label="Daily practice activity">
-          {weekdayLabels.map((label, weekdayIndex) => (
+          {calendar.months.map((month) => (
             <span
-              className="activity-weekday"
-              data-weekday-label=""
-              key={label}
-              style={{ gridColumn: 1, gridRow: weekdayIndex + 1 }}
+              className="activity-month"
+              data-month-label=""
+              data-month-start={month.monthStart}
+              key={month.monthStart}
+              style={{ gridColumn: month.weekIndex + 2, gridRow: 1 }}
             >
-              {label}
+              {month.label}
             </span>
+          ))}
+
+          {weekdayLabels.map((label, weekdayIndex) => (
+            visibleWeekdayIndexes.has(weekdayIndex) ? (
+              <span
+                className="activity-weekday"
+                data-weekday-label=""
+                key={label}
+                style={{ gridColumn: 1, gridRow: weekdayIndex + 2 }}
+              >
+                {label}
+              </span>
+            ) : null
           ))}
 
           {calendar.weeks.flatMap((week, weekIndex) =>
             week.map((day, weekdayIndex) => {
               const gridPosition = {
                 gridColumn: weekIndex + 2,
-                gridRow: weekdayIndex + 1,
+                gridRow: weekdayIndex + 2,
               }
 
               const description = day.isFuture

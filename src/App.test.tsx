@@ -153,7 +153,7 @@ describe('timed practice round', () => {
 
     expect(container.textContent).toContain('Answer saved')
     expect(findButton(container, 'Answered').disabled).toBe(true)
-    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(container.textContent).toContain('1 answer in the last year')
     expect(
       container.querySelector(
         'button[aria-label="September 27, 2026: 1 question answered."]',
@@ -182,7 +182,7 @@ describe('timed practice round', () => {
     click(findButton(container, 'Mark answered'))
 
     expect(container.textContent).toContain('Answer completed, but it was not saved')
-    expect(container.textContent).toContain('0 answers in the last 52 weeks')
+    expect(container.textContent).toContain('0 answers in the last year')
     expect(
       container.querySelector(
         'button[aria-label="September 27, 2026: 0 questions answered."]',
@@ -193,7 +193,7 @@ describe('timed practice round', () => {
     click(findButton(container, 'Retry saving'))
 
     expect(container.textContent).toContain('Answer saved')
-    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(container.textContent).toContain('1 answer in the last year')
     expect(
       container.querySelector(
         'button[aria-label="September 27, 2026: 1 question answered."]',
@@ -229,7 +229,7 @@ describe('timed practice round', () => {
     })
 
     expect(container.textContent).toContain('Answer saved')
-    expect(container.textContent).toContain('1 answer in the last 52 weeks')
+    expect(container.textContent).toContain('1 answer in the last year')
     expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
       version: 1,
       timerSeconds: 120,
@@ -255,7 +255,7 @@ describe('timed practice round', () => {
     click(findButton(container, 'Mark answered'))
 
     expect(setItem).toHaveBeenCalledTimes(2)
-    expect(container.textContent).toContain('2 answers in the last 52 weeks')
+    expect(container.textContent).toContain('2 answers in the last year')
     expect(JSON.parse(window.localStorage.getItem('interview-spin:v1') ?? '')).toEqual({
       version: 1,
       timerSeconds: 60,
