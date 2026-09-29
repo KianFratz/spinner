@@ -98,87 +98,89 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
         ref={scrollRef}
         tabIndex={0}
       >
-        <div className="activity-calendar" role="group" aria-label="Daily practice activity">
-          {calendar.months.map((month) => (
-            <span
-              className="activity-month"
-              data-month-label=""
-              data-month-start={month.monthStart}
-              key={month.monthStart}
-              style={{ gridColumn: month.weekIndex + 2, gridRow: 1 }}
-            >
-              {month.label}
-            </span>
-          ))}
-
-          {weekdayLabels.map((label, weekdayIndex) => (
-            visibleWeekdayIndexes.has(weekdayIndex) ? (
+        <div className="activity-track">
+          <div className="activity-calendar" role="group" aria-label="Daily practice activity">
+            {calendar.months.map((month) => (
               <span
-                className="activity-weekday"
-                data-weekday-label=""
-                key={label}
-                style={{ gridColumn: 1, gridRow: weekdayIndex + 2 }}
+                className="activity-month"
+                data-month-label=""
+                data-month-start={month.monthStart}
+                key={month.monthStart}
+                style={{ gridColumn: month.weekIndex + 2, gridRow: 1 }}
               >
-                {label}
+                {month.label}
               </span>
-            ) : null
-          ))}
+            ))}
 
-          {calendar.weeks.flatMap((week, weekIndex) =>
-            week.map((day, weekdayIndex) => {
-              const gridPosition = {
-                gridColumn: weekIndex + 2,
-                gridRow: weekdayIndex + 2,
-              }
+            {weekdayLabels.map((label, weekdayIndex) => (
+              visibleWeekdayIndexes.has(weekdayIndex) ? (
+                <span
+                  className="activity-weekday"
+                  data-weekday-label=""
+                  key={label}
+                  style={{ gridColumn: 1, gridRow: weekdayIndex + 2 }}
+                >
+                  {label}
+                </span>
+              ) : null
+            ))}
 
-              const description = day.isFuture
-                ? describeUnavailableDay(day.date)
-                : describeDay(day.date, day.count)
+            {calendar.weeks.flatMap((week, weekIndex) =>
+              week.map((day, weekdayIndex) => {
+                const gridPosition = {
+                  gridColumn: weekIndex + 2,
+                  gridRow: weekdayIndex + 2,
+                }
 
-              return (
-                <button
-                  aria-disabled={day.isFuture || undefined}
-                  aria-label={description}
-                  className={`activity-day${day.isFuture ? ' activity-day--future' : ''}`}
-                  data-activity-date={day.date}
-                  data-future={day.isFuture ? '' : undefined}
-                  data-level={day.isFuture ? undefined : getActivityLevel(day.count)}
-                  data-today={day.date === todayKey ? '' : undefined}
-                  key={day.date}
-                  ref={(button) => {
-                    if (button) {
-                      dayButtonRefs.current.set(day.date, button)
-                    } else {
-                      dayButtonRefs.current.delete(day.date)
+                const description = day.isFuture
+                  ? describeUnavailableDay(day.date)
+                  : describeDay(day.date, day.count)
+
+                return (
+                  <button
+                    aria-disabled={day.isFuture || undefined}
+                    aria-label={description}
+                    className={`activity-day${day.isFuture ? ' activity-day--future' : ''}`}
+                    data-activity-date={day.date}
+                    data-future={day.isFuture ? '' : undefined}
+                    data-level={day.isFuture ? undefined : getActivityLevel(day.count)}
+                    data-today={day.date === todayKey ? '' : undefined}
+                    key={day.date}
+                    ref={(button) => {
+                      if (button) {
+                        dayButtonRefs.current.set(day.date, button)
+                      } else {
+                        dayButtonRefs.current.delete(day.date)
+                      }
+                    }}
+                    style={gridPosition}
+                    title={description}
+                    tabIndex={day.date === activeDate ? 0 : -1}
+                    type="button"
+                    onFocus={() => setActiveDate(day.date)}
+                    onKeyDown={(event) =>
+                      handleDayKeyDown(
+                        event,
+                        weekIndex * weekdayLabels.length + weekdayIndex,
+                      )
                     }
-                  }}
-                  style={gridPosition}
-                  title={description}
-                  tabIndex={day.date === activeDate ? 0 : -1}
-                  type="button"
-                  onFocus={() => setActiveDate(day.date)}
-                  onKeyDown={(event) =>
-                    handleDayKeyDown(
-                      event,
-                      weekIndex * weekdayLabels.length + weekdayIndex,
-                    )
-                  }
-                />
-              )
-            }),
-          )}
-        </div>
-      </div>
+                  />
+                )
+              }),
+            )}
+          </div>
 
-      <div className="activity-legend" aria-label="Answer count legend">
-        <span>Less</span>
-        {['0', '1', '2–4', '5–9', '10+'].map((label, level) => (
-          <span className="activity-legend__item" key={label}>
-            <span aria-hidden="true" className="activity-legend__swatch" data-level={level} />
-            <span>{label}</span>
-          </span>
-        ))}
-        <span>More</span>
+          <div className="activity-legend" aria-label="Answer count legend">
+            <span>Less</span>
+            {['0', '1', '2–4', '5–9', '10+'].map((label, level) => (
+              <span className="activity-legend__item" key={label}>
+                <span aria-hidden="true" className="activity-legend__swatch" data-level={level} />
+                <span>{label}</span>
+              </span>
+            ))}
+            <span>More</span>
+          </div>
+        </div>
       </div>
     </section>
   )

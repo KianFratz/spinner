@@ -573,6 +573,11 @@ button {
   background: var(--accent);
 }
 
+.activity-track {
+  width: max-content;
+  margin-inline: auto;
+}
+
 .activity-calendar {
   display: grid;
   grid-template-columns: 28px repeat(52, 14px);
@@ -602,6 +607,7 @@ button {
   font-size: 9px;
   font-weight: 750;
   line-height: 1;
+  text-align: center;
 }
 
 .activity-day {
@@ -668,6 +674,7 @@ button {
   flex-wrap: wrap;
   gap: 7px;
   margin-top: 14px;
+  margin-left: auto;
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
