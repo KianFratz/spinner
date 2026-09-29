@@ -23,7 +23,7 @@ describe('activity grid', () => {
     vi.useRealTimers()
   })
 
-  it('renders visible totals, weekday labels, exact counts, and unavailable future days', () => {
+  it('renders month labels, compact weekday labels, exact counts, and unavailable future days', () => {
     act(() => {
       root.render(
         <ActivityGrid
@@ -36,8 +36,12 @@ describe('activity grid', () => {
       )
     })
 
-    expect(container.querySelector('h2')?.textContent).toBe('Activity')
-    expect(container.textContent).toContain('4 answers in the last year')
+    expect(container.querySelector('h2')).toBeNull()
+    expect(container.querySelector('.activity-panel')?.getAttribute('aria-label')).toBe(
+      'Practice activity tracker',
+    )
+    expect(container.textContent).not.toContain('in the last year')
+    expect(container.querySelector('.activity-detail')).toBeNull()
     expect(
       [...container.querySelectorAll('[data-weekday-label]')].map(
         (label) => label.textContent,
@@ -56,7 +60,7 @@ describe('activity grid', () => {
     ).not.toBeNull()
   })
 
-  it('shows exact day details on hover, keyboard focus, and click', () => {
+  it('keeps exact day details on each cell for pointer and keyboard users', () => {
     act(() => {
       root.render(
         <ActivityGrid
@@ -80,18 +84,17 @@ describe('activity grid', () => {
       'button[aria-label="September 29, 2026: 4 questions answered."]',
     )
 
-    act(() => zeroDay?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })))
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
+    expect(zeroDay?.getAttribute('title')).toBe(
       'September 27, 2026: 0 questions answered.',
     )
 
     act(() => twoDay?.focus())
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
+    expect(document.activeElement?.getAttribute('aria-label')).toBe(
       'September 28, 2026: 2 questions answered.',
     )
 
     act(() => fourDay?.click())
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
+    expect(fourDay?.getAttribute('aria-label')).toBe(
       'September 29, 2026: 4 questions answered.',
     )
   })
@@ -121,9 +124,6 @@ describe('activity grid', () => {
       container.querySelector('[data-today][aria-label^="September 30, 2026"]'),
     ).toBeNull()
     expect(container.querySelector('.activity-day[tabindex="0"]')?.getAttribute('aria-label')).toBe(
-      'October 1, 2026: 0 questions answered.',
-    )
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
       'October 1, 2026: 0 questions answered.',
     )
   })
@@ -174,9 +174,6 @@ describe('activity grid', () => {
       'October 1, 2026: unavailable.',
     )
     expect(document.activeElement?.getAttribute('aria-disabled')).toBe('true')
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
-      'October 1, 2026: unavailable.',
-    )
   })
 
   it('restores the keyboard entry point when a new week drops the active day', () => {
@@ -201,9 +198,6 @@ describe('activity grid', () => {
     expect(
       container.querySelector('.activity-day[tabindex="0"]')?.getAttribute('aria-label'),
     ).toBe('September 28, 2026: 0 questions answered.')
-    expect(container.querySelector('.activity-detail')?.textContent).toBe(
-      'September 28, 2026: 0 questions answered.',
-    )
   })
 
   it('keeps the midnight deadline when activity refreshes late in the day', () => {

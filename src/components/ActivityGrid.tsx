@@ -36,12 +36,7 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
   const calendar = buildActivityCalendar(activityByDate, today)
   const calendarDays = calendar.weeks.flat()
   const todayKey = formatLocalDate(today)
-  const [selectedDate, setSelectedDate] = useState(todayKey)
   const [activeDate, setActiveDate] = useState(todayKey)
-  const selectedDay = calendarDays.find((day) => day.date === selectedDate)
-  const selectedDayDescription = selectedDay?.isFuture
-    ? describeUnavailableDay(selectedDate)
-    : describeDay(selectedDate, activityByDate[selectedDate] ?? 0)
 
   useEffect(() => {
     const currentTime = new Date()
@@ -58,9 +53,6 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
       )
 
       setActiveDate((date) =>
-        date === previousTodayKey || !nextVisibleDates.has(date) ? nextTodayKey : date,
-      )
-      setSelectedDate((date) =>
         date === previousTodayKey || !nextVisibleDates.has(date) ? nextTodayKey : date,
       )
       setToday(nextToday)
@@ -99,20 +91,7 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
   }
 
   return (
-    <section className="activity-panel" aria-labelledby="activity-heading">
-      <div className="activity-panel__header">
-        <div>
-          <h2 id="activity-heading">Activity</h2>
-          <p>
-            {calendar.totalAnswered}{' '}
-            {calendar.totalAnswered === 1 ? 'answer' : 'answers'} in the last year
-          </p>
-        </div>
-        <p className="activity-scroll-hint">
-          Recent weeks are on the right <span aria-hidden="true">→</span>
-        </p>
-      </div>
-
+    <section className="activity-panel" aria-label="Practice activity tracker">
       <div
         aria-label="Year activity calendar; scroll horizontally to explore"
         className="activity-scroll"
@@ -177,28 +156,19 @@ function ActivityGrid({ activityByDate }: ActivityGridProps) {
                   title={description}
                   tabIndex={day.date === activeDate ? 0 : -1}
                   type="button"
-                  onClick={() => setSelectedDate(day.date)}
-                  onFocus={() => {
-                    setActiveDate(day.date)
-                    setSelectedDate(day.date)
-                  }}
+                  onFocus={() => setActiveDate(day.date)}
                   onKeyDown={(event) =>
                     handleDayKeyDown(
                       event,
                       weekIndex * weekdayLabels.length + weekdayIndex,
                     )
                   }
-                  onMouseEnter={() => setSelectedDate(day.date)}
                 />
               )
             }),
           )}
         </div>
       </div>
-
-      <p className="activity-detail" id="activity-day-detail" aria-live="polite">
-        {selectedDayDescription}
-      </p>
 
       <div className="activity-legend" aria-label="Answer count legend">
         <span>Less</span>

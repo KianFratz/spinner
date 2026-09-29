@@ -42,15 +42,14 @@ Practice one software engineering question at a time.
             [ Pause / Resume ] [ Reset ]
                     [ Mark answered ]
 
-Activity · 34 answers in the last year
           Oct Nov Dec ... Sep
 Mon       ... calendar cells, grouped by weeks
 Wed
 Fri
-Less  [0] [1] [2–4] [5–9] [10+]  More
+                                  Less  [0] [1] [2–4] [5–9] [10+]  More
 ```
 
-This is a layout guide, not a requirement to reproduce an ASCII diagram in the product. The implemented grid should have weekday rows and week columns like a contribution calendar. Put controls and question text close together; show the activity panel below the practice panel.
+This is a layout guide, not a requirement to reproduce an ASCII diagram in the product. The implemented grid should have weekday rows and week columns like a contribution calendar. Keep the tracker borderless and centered below the practice panel, with the legend aligned to its bottom-right edge.
 
 ### Visual behavior
 

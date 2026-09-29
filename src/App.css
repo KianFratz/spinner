@@ -538,47 +538,9 @@ button {
 .activity-panel {
   margin-bottom: 72px;
   padding: clamp(18px, 3vw, 28px);
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 16px;
   background: var(--surface);
-}
-
-.activity-panel__header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 20px;
-}
-
-.activity-panel__header h2 {
-  margin-bottom: 5px;
-  color: var(--ink);
-  font-size: clamp(24px, 3vw, 32px);
-  font-weight: 580;
-  letter-spacing: -0.035em;
-  line-height: 1;
-}
-
-.activity-panel__header p {
-  margin-bottom: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.activity-scroll-hint {
-  flex: none;
-  font-weight: 700;
-  text-align: right;
-}
-
-.activity-scroll-hint span {
-  display: inline-block;
-  margin-left: 5px;
-  color: var(--accent);
-  font-size: 18px;
-  line-height: 0;
 }
 
 .activity-scroll {
@@ -617,7 +579,8 @@ button {
   grid-template-rows: 16px repeat(7, 14px);
   gap: 3px;
   width: max-content;
-  min-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
 }
 
 .activity-month {
@@ -698,22 +661,13 @@ button {
   outline-offset: 2px;
 }
 
-.activity-detail {
-  min-height: 20px;
-  margin: 12px 0 0;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
 .activity-legend {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 16px;
+  margin-top: 14px;
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
@@ -863,17 +817,6 @@ button {
     padding: 20px 16px;
   }
 
-  .activity-panel__header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-
-  .activity-scroll-hint {
-    text-align: left;
-  }
-
   .activity-calendar {
     grid-template-columns: 30px repeat(52, 18px);
     grid-template-rows: 16px repeat(7, 18px);
@@ -886,7 +829,7 @@ button {
   }
 
   .activity-legend {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 }
 
