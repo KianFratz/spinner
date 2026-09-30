@@ -277,17 +277,19 @@ function App() {
           <div className="practice-layout">
             <section className="practice-card" aria-label="Interview question practice">
               <div className="practice-card__spinner">
-                <Spinner
-                  isSpinning={isSpinning}
-                  selectedLabel={spinningLabel ?? selectedQuestion?.topic ?? null}
-                  onSpin={handleSpin}
-                  animationDurationMs={spinDurationMs}
-                />
-                <p className="spinner-caption" aria-live="polite">
-                  {isSpinning
-                    ? 'Finding a prompt in your selected category…'
-                    : 'The reel will settle on one prompt.'}
-                </p>
+                <div className="spinner-area">
+                  <Spinner
+                    isSpinning={isSpinning}
+                    selectedLabel={spinningLabel ?? selectedQuestion?.topic ?? null}
+                    onSpin={handleSpin}
+                    animationDurationMs={spinDurationMs}
+                  />
+                  <p className="spinner-caption" aria-live="polite">
+                    {isSpinning
+                      ? 'Finding a prompt in your selected category…'
+                      : 'The reel will settle on one prompt.'}
+                  </p>
+                </div>
 
                 <div className="spinner-controls">
                   <div className="filter-block">
@@ -311,9 +313,14 @@ function App() {
                   </div>
 
                   <div className="timer-setting">
-                    <label className="control-label" htmlFor="answer-duration">
-                      Answer time
-                    </label>
+                    <div className="timer-setting__label-row">
+                      <label className="control-label" htmlFor="answer-duration">
+                        Answer time
+                      </label>
+                      <span className="control-hint" id="answer-duration-help">
+                        30–600 sec
+                      </span>
+                    </div>
                     <div className="duration-input">
                       <input
                         id="answer-duration"
@@ -329,9 +336,6 @@ function App() {
                       />
                       <span>seconds</span>
                     </div>
-                    <p className="timer-setting-help" id="answer-duration-help">
-                      Choose 30–600 seconds before you start.
-                    </p>
                   </div>
                 </div>
               </div>

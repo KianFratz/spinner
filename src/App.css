@@ -75,8 +75,9 @@ main {
 
 .practice-card {
   display: grid;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(470px, 0.9fr) minmax(0, 1.1fr);
   align-items: stretch;
+  min-height: 680px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -87,39 +88,56 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 34px clamp(20px, 4vw, 44px) 36px;
+  min-height: 680px;
+  padding: 28px;
   border-right: 1px solid var(--line);
   background: var(--panel-muted);
 }
 
+.spinner-area {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding-bottom: 40px;
+}
+
 .spinner-controls {
-  width: min(100%, 360px);
-  margin-top: 22px;
-  padding-top: 22px;
+  display: grid;
+  grid-template-columns: minmax(230px, 1.3fr) minmax(168px, 0.7fr);
+  align-items: start;
+  gap: 16px;
+  width: min(100%, 440px);
+  flex: none;
+  margin: 0 auto 16px;
+  padding: 18px 0 0;
   border-top: 1px solid var(--line-strong);
 }
 
 .filter-block {
   align-self: stretch;
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
 
 .control-label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .filter-list {
-  display: flex;
+  display: grid;
+  grid-template-columns: 0.66fr 1fr 1.18fr;
   min-width: 0;
-  gap: 6px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surface);
 }
 
@@ -128,17 +146,17 @@ button {
 }
 
 .filter-button {
-  flex: 1;
   min-width: 0;
   min-height: 40px;
-  padding: 7px 10px;
+  padding: 6px 7px;
   border: 0;
   border-radius: 8px;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
   transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -160,16 +178,38 @@ button {
 
 .timer-setting {
   align-self: stretch;
+  min-width: 0;
   margin-bottom: 0;
+}
+
+.timer-setting__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.timer-setting__label-row .control-label {
+  margin-bottom: 0;
+}
+
+.control-hint {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .duration-input {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
+  min-height: 48px;
   padding: 4px 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--muted);
   background: var(--surface);
   font-size: 12px;
@@ -177,14 +217,22 @@ button {
 }
 
 .duration-input input {
-  width: 100%;
-  min-height: 40px;
+  flex: 1 1 auto;
+  width: 4.5rem;
+  min-width: 0;
+  min-height: 38px;
   padding: 0;
   border: 0;
   color: var(--ink);
   background: transparent;
   font: inherit;
   outline: 0;
+  text-align: left;
+}
+
+.duration-input > span {
+  flex: none;
+  white-space: nowrap;
 }
 
 .duration-input:focus-within {
@@ -197,13 +245,6 @@ button {
   opacity: 0.6;
 }
 
-.timer-setting-help {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
 .spinner-stage {
   display: flex;
   flex-direction: column;
@@ -213,15 +254,15 @@ button {
 
 .spinner-reel {
   position: relative;
-  width: min(300px, 78vw);
-  height: 246px;
+  width: min(260px, 72vw);
+  height: 198px;
   background: transparent;
   overflow: hidden;
 }
 
 .spinner-reel__viewport {
   position: absolute;
-  inset: 18px 24px;
+  inset: 12px 18px;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -242,7 +283,7 @@ button {
 .spinner-reel__labels {
   display: flex;
   flex-direction: column;
-  padding-top: 33px;
+  padding-top: 15px;
   transform: translate3d(0, 0, 0);
   will-change: transform, filter;
 }
@@ -286,10 +327,10 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 25px;
-  min-width: 178px;
-  min-height: 52px;
-  margin-top: 32px;
-  padding: 14px 15px 14px 19px;
+  min-width: 164px;
+  min-height: 48px;
+  margin-top: 24px;
+  padding: 12px 14px 12px 17px;
   border: 0;
   border-radius: 12px;
   color: var(--on-accent);
@@ -328,7 +369,7 @@ button {
 
 .spinner-caption {
   min-height: 20px;
-  margin: 16px 0 0;
+  margin: 12px 0 0;
   color: var(--muted);
   font-size: 12px;
   text-align: center;
@@ -338,7 +379,7 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 540px;
+  min-height: 680px;
   padding: clamp(28px, 5vw, 56px);
   background: var(--surface);
 }
@@ -411,7 +452,7 @@ button {
   max-width: 690px;
   margin-bottom: 28px;
   color: var(--ink);
-  font-size: clamp(28px, 4vw, 47px);
+  font-size: clamp(28px, 3.2vw, 42px);
   font-weight: 540;
   letter-spacing: -0.035em;
   line-height: 1.02;
@@ -775,6 +816,17 @@ button {
   }
 }
 
+@media (max-width: 1020px) {
+  .practice-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .practice-card__spinner {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
 @media (max-width: 780px) {
   .app-shell {
     width: calc(100% - 30px);
@@ -793,17 +845,6 @@ button {
 
   .practice-card__spinner {
     padding: 24px 18px 30px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .spinner-controls {
-    margin-top: 20px;
-    padding-top: 20px;
-  }
-
-  .practice-card__question {
-    min-height: 390px;
   }
 
   .question-content {
@@ -835,6 +876,15 @@ button {
 
   .activity-legend {
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: 520px) {
+  .spinner-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 16px;
+    padding-top: 16px;
   }
 }
 
