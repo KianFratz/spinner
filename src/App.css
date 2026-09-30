@@ -254,15 +254,15 @@ button {
 
 .spinner-reel {
   position: relative;
-  width: min(260px, 72vw);
-  height: 198px;
+  width: min(320px, 78vw);
+  height: 226px;
   background: transparent;
   overflow: hidden;
 }
 
 .spinner-reel__viewport {
   position: absolute;
-  inset: 12px 18px;
+  inset: 10px 14px;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -283,7 +283,7 @@ button {
 .spinner-reel__labels {
   display: flex;
   flex-direction: column;
-  padding-top: 15px;
+  padding-top: 19px;
   transform: translate3d(0, 0, 0);
   will-change: transform, filter;
 }
@@ -294,10 +294,10 @@ button {
 
 .spinner-reel__labels span {
   display: grid;
-  flex: 0 0 var(--reel-item-height, 48px);
+  flex: 0 0 var(--reel-item-height, 56px);
   place-items: center;
   color: #2B2B2B;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.03em;
   white-space: nowrap;
@@ -316,7 +316,7 @@ button {
 
 .spinner-reel.is-settled .spinner-reel__labels span.is-selected {
   color: var(--ink);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: 0;
   transform: scale(1.04);
@@ -742,23 +742,18 @@ button {
 
 .question-placeholder {
   align-self: center;
-  max-width: 280px;
+  width: 100%;
+  max-width: 380px;
   margin: auto;
   color: var(--muted);
   text-align: center;
 }
 
-.placeholder-dot {
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 18px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 14px;
-  color: var(--accent);
-  font-size: 26px;
-  font-weight: 500;
+.question-placeholder__illustration {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto 22px;
 }
 
 .question-placeholder p {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { CircleHelp } from 'lucide-react'
 import ActivityGrid from './components/ActivityGrid'
 import Spinner from './components/Spinner'
+import playfulCat from './assets/undraw_playful-cat_3ta5.png'
 import { questions } from './data/questions'
 import {
   MAX_DURATION_SECONDS,
@@ -441,9 +441,12 @@ function App() {
                   </div>
                 ) : (
                   <div className="question-placeholder">
-                    <span className="placeholder-dot" aria-hidden="true">
-                      <CircleHelp size={25} strokeWidth={1.8} />
-                    </span>
+                    <img
+                      className="question-placeholder__illustration"
+                      src={playfulCat}
+                      alt=""
+                      aria-hidden="true"
+                    />
                     <p>Your selected prompt will land here.</p>
                     <span>Use the category filter to shape the next spin.</span>
                   </div>

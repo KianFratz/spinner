@@ -7,7 +7,7 @@ export const WHEEL_LABELS = [
   'System design',
 ] as const
 
-export const REEL_ITEM_HEIGHT = 48
+export const REEL_ITEM_HEIGHT = 56
 export const REEL_CENTER_INDEX = 1
 const REEL_TARGET_CYCLES = 3
 
